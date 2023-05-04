@@ -56,7 +56,7 @@ like for like in the pineconer package.
     create_index("xxx")
   
   # describe index
-    describe_index("mollie-help")
+    describe_index("help")
   
   # delete index
     delete_index("xxx")
@@ -72,8 +72,8 @@ like for like in the pineconer package.
 
 ``` r
  # describe index stats
-     stats <- describe_index_stats( index_name = "mollie-help", 
-                                    project_name = "427c0b2.svc",
+     stats <- describe_index_stats( index_name = "help", 
+                                    project_name = "xxx",
                                     filter = list( language = "english")
                                    )
  # query
