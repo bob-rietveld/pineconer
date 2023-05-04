@@ -1,29 +1,36 @@
 #' Descrive Index stats
 #'
-#' @param controller
+#' @param index_name
+#' @param project_name
 #'
 #' @return
 #' @export
-#'
-#' @examples
-describe_index_stats <- function( controller ){
+describe_index_stats <- function(  index_name = NA, project_name = NA){
+
+  # to do implement filters
+
+  # assertions
+  assertthat::assert_that(assertthat::noNA(index_name), msg = "Please provide and index name.")
+  assertthat::assert_that(assertthat::noNA(project_name), msg = "Please provide and project_name. You can find it using describe_index in the status / host response.")
 
   # get toke
   pinecone_token <- get_api_key()
 
+  # controller
+  controller = glue::glue("{index_name}-{project_name}")
+
   # get url
-  pinecone_url <- get_url(controller = controller, set_path = "databases/describe_index_stats")
+  pinecone_url <- get_url(controller = controller,
+                          set_path   = "describe_index_stats")
 
   # get response
   response <- httr::GET( pinecone_url,
-                         httr::accept_json(),
-                         httr::add_headers( `Api-Key`= pinecone_token )
+                          httr::add_headers( `Api-Key`= pinecone_token )
   )
 
   result <- handle_respons(response)
 
   return(result)
-
 
 }
 
@@ -41,7 +48,6 @@ describe_index_stats <- function( controller ){
 #' @return
 #' @export
 #'
-#' @examples
 vector_query <- function( index,
                           vector,
                           top_k = 5,
@@ -87,15 +93,15 @@ vector_query <- function( index,
   if(tidy){
 
     result$content <-  tibble::tibble(data = result$content$matches) %>%
-      tidyr::unnest_wider(data) %>%
-      tidyr::unnest_wider(metadata)
+                       tidyr::unnest_wider(data) %>%
+                       tidyr::unnest_wider(metadata)
   }
 
   return(result)
 
 }
 
-#' Title
+#' Delete vector
 #'
 #' @param index
 #' @param ids
@@ -134,9 +140,8 @@ vector_delete <- function( index, ids = NULL, delete_all = FALSE, name_space = "
     body <-   body[names(body) != "filter"]
   }
 
+  # make body
   body <- jsonlite::toJSON( body, auto_unbox = TRUE)
-
-  print(body)
 
   # get response
   response <- httr::POST( pinecone_url,

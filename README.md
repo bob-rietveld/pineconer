@@ -49,20 +49,40 @@ like for like in the pineconer package.
 ## Index Operations
 
 ``` r
-# list indexes
-  list_indexes()
-
-# create index
-  create_index("xxx")
-
-# describe index
-  describe_index("xxx")
-
-# delete index
-  delete_index("xxx")
+  # list indexes
+    list_indexes()
   
-# configure index
- configure_index(index_name = "xxx", replica  = 1, pod_type = "s1.x2")
+  # create index
+    create_index("xxx")
   
+  # describe index
+    describe_index("mollie-help")
   
+  # delete index
+    delete_index("xxx")
+    
+  # configure index
+    configure_index(index_name = "xxx", 
+                    replica  = 1, 
+                    pod_type = "s1.x2")
+  
+```
+
+## Vector Operations
+
+``` r
+ # describe index stats
+     stats <- describe_index_stats( index_name = "mollie-help", 
+                                    project_name = "427c0b2.svc",
+                                    filter = list( language = "english")
+                                   )
+ # query
+
+ # delete
+
+ # fetch
+
+ # update
+
+ # upsert
 ```

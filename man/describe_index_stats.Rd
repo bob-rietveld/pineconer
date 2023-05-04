@@ -4,10 +4,10 @@
 \alias{describe_index_stats}
 \title{Descrive Index stats}
 \usage{
-describe_index_stats(controller)
+describe_index_stats(index_name = NA, project_name = NA)
 }
 \arguments{
-\item{controller}{}
+\item{project_name}{}
 }
 \description{
 Descrive Index stats

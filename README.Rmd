@@ -48,7 +48,7 @@ PINECONE_ENVIRONMENT = "PINECONE Region"
 
 Pincone API support the following index operations, the are implemented like for like in the pineconer package. 
 
-```{r index}
+```{r collection}
 
 # list collections
   list_collections()
@@ -66,22 +66,42 @@ Pincone API support the following index operations, the are implemented like for
 
 ## Index Operations
 
+```{r index}
+  # list indexes
+    list_indexes()
+  
+  # create index
+    create_index("xxx")
+  
+  # describe index
+    describe_index("mollie-help")
+  
+  # delete index
+    delete_index("xxx")
+    
+  # configure index
+    configure_index(index_name = "xxx", 
+                    replica  = 1, 
+                    pod_type = "s1.x2")
+  
+```
+
+## Vector Operations
 ```{r}
-# list indexes
-  list_indexes()
+ # describe index stats
+     stats <- describe_index_stats( index_name = "mollie-help", 
+                                    project_name = "427c0b2.svc",
+                                    filter = list( language = "english")
+                                   )
+ # query
 
-# create index
-  create_index("xxx")
+ # delete
 
-# describe index
-  describe_index("xxx")
+ # fetch
 
-# delete index
-  delete_index("xxx")
-  
-# configure index
- configure_index(index_name = "xxx", replica  = 1, pod_type = "s1.x2")
-  
-  
+ # update
+
+ # upsert
+
 ```
 
