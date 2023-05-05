@@ -50,84 +50,20 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="pineconer">Pineconer<a class="anchor" aria-label="anchor" href="#pineconer"></a>
-</h1></div>
-<!-- badges: start -->
-<!-- badges: end -->
-<p>The goal of pineconer is to provide a way to store and access vectors using the Pincone API</p>
-<div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+  <main id="main" class="col-md-9"><div class="section level2">
+<h2 id="pincone">Pincone<a class="anchor" aria-label="anchor" href="#pincone"></a>
 </h2>
-<p>You can install the development version of pineconer like so:</p>
+<p>This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <a href="http://rmarkdown.rstudio.com" class="external-link uri">http://rmarkdown.rstudio.com</a>.</p>
+<p>When you click the <strong>Knit</strong> button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="configuration">Configuration<a class="anchor" aria-label="anchor" href="#configuration"></a>
-</h2>
-<p>You can set the API key and region in your env file. usethis::edit_r_environ() is a convenient way to open the file. Next set the following two variables.</p>
-<p>PINECONE_API_KEY = “YOUR API KEY” PINECONE_ENVIRONMENT = “PINECONE Region”</p>
-</div>
-<div class="section level2">
-<h2 id="collection-operations">Collection Operations<a class="anchor" aria-label="anchor" href="#collection-operations"></a>
-</h2>
-<p>Pincone API support the following index operations, the are implemented like for like in the pineconer package.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># list collections</span></span>
-<span>  <span class="fu"><a href="reference/list_collections.html">list_collections</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># create collection</span></span>
-<span>  <span class="fu"><a href="reference/create_collection.html">create_collection</a></span><span class="op">(</span><span class="st">"xxx"</span>,<span class="st">"xxx"</span><span class="op">)</span></span>
-<span>  </span>
-<span><span class="co"># describe collection</span></span>
-<span>  <span class="fu"><a href="reference/describe_collection.html">describe_collection</a></span><span class="op">(</span>collection_name <span class="op">=</span> <span class="st">"xxx"</span><span class="op">)</span></span>
-<span>  </span>
-<span><span class="co"># delete collection</span></span>
-<span>  <span class="fu"><a href="reference/delete_collection.html">delete_collection</a></span><span class="op">(</span><span class="st">"xxx"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="index-operations">Index Operations<a class="anchor" aria-label="anchor" href="#index-operations"></a>
-</h2>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span>  <span class="co"># list indexes</span></span>
-<span>    <span class="fu"><a href="reference/list_indexes.html">list_indexes</a></span><span class="op">(</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="co"># create index</span></span>
-<span>    <span class="fu"><a href="reference/create_index.html">create_index</a></span><span class="op">(</span><span class="st">"xxx"</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="co"># describe index</span></span>
-<span>    <span class="fu"><a href="reference/describe_index.html">describe_index</a></span><span class="op">(</span><span class="st">"help"</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="co"># delete index</span></span>
-<span>    <span class="fu"><a href="reference/delete_index.html">delete_index</a></span><span class="op">(</span><span class="st">"xxx"</span><span class="op">)</span></span>
-<span>    </span>
-<span>  <span class="co"># configure index</span></span>
-<span>    <span class="fu"><a href="reference/configure_index.html">configure_index</a></span><span class="op">(</span>index_name <span class="op">=</span> <span class="st">"xxx"</span>, </span>
-<span>                    replica  <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>                    pod_type <span class="op">=</span> <span class="st">"s1.x2"</span><span class="op">)</span></span>
-<span>  </span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="vector-operations">Vector Operations<a class="anchor" aria-label="anchor" href="#vector-operations"></a>
-</h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span> <span class="co"># describe index stats</span></span>
-<span>     <span class="va">stats</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/describe_index_stats.html">describe_index_stats</a></span><span class="op">(</span> index_name <span class="op">=</span> <span class="st">"help"</span>, </span>
-<span>                                    project_name <span class="op">=</span> <span class="st">"xxx"</span>,</span>
-<span>                                    filter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span> language <span class="op">=</span> <span class="st">"english"</span><span class="op">)</span></span>
-<span>                                   <span class="op">)</span></span>
-<span> <span class="co"># query</span></span>
-<span></span>
-<span> <span class="co"># delete</span></span>
-<span></span>
-<span> <span class="co"># fetch</span></span>
-<span></span>
-<span> <span class="co"># update</span></span>
-<span></span>
-<span> <span class="co"># upsert</span></span></code></pre></div>
-</div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">cars</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="do">##      speed           dist       </span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="do">##  Min.   : 4.0   Min.   :  2.00  </span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="do">##  1st Qu.:12.0   1st Qu.: 26.00  </span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="do">##  Median :15.0   Median : 36.00  </span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="do">##  Mean   :15.4   Mean   : 42.98  </span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="do">##  3rd Qu.:19.0   3rd Qu.: 56.00  </span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="do">##  Max.   :25.0   Max.   :120.00</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><div class="license">
 <h2 data-toc-skip>License</h2>

@@ -2,7 +2,9 @@
 title: "Index.Rmd"
 author: "Bob Rietveld"
 date: "2023-05-05"
-output: html_document
+output:
+  md_document:
+    variant: markdown_github
 ---
 
 ```{r setup, include=FALSE}
