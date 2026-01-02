@@ -268,3 +268,117 @@ configure_index <- function(index_name, replicas = NULL, pod_type = NULL, deleti
   return(result)
 
 }
+
+
+#' Create Index for Model
+#'
+#' Creates a new Pinecone index with an integrated embedding model. This enables
+#' automatic embedding of text during upsert and query operations using
+#' Pinecone's hosted models.
+#'
+#' @param name Name of the index (must be unique within project)
+#' @param cloud Cloud provider: "aws", "gcp", or "azure"
+#' @param region Cloud region (e.g., "us-east-1" for AWS)
+#' @param embed A list specifying the embedding model configuration:
+#'   - model: The embedding model name (e.g., "multilingual-e5-large")
+#'   - field_map: A named list mapping source field to text field (e.g., list(text = "chunk_text"))
+#'   - metric: Optional distance metric ("cosine", "euclidean", "dotproduct")
+#'   - read_parameters: Optional list with input_type for queries
+#'   - write_parameters: Optional list with input_type for documents
+#' @param deletion_protection Whether to enable deletion protection ("enabled" or "disabled")
+#' @param tags Optional named list of tags for the index
+#'
+#' @return List with http response, content (index details including host), and status_code
+#'
+#' @details
+#' Indexes created with integrated embedding models support:
+#' - `records_upsert()`: Upsert text that gets automatically embedded
+
+#' - `records_search()`: Search using text queries with optional reranking
+#'
+#' The embedding model determines the vector dimension automatically.
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Create an index with multilingual-e5-large model
+#' create_index_for_model(
+#'   name = "my-semantic-index",
+#'   cloud = "aws",
+#'   region = "us-east-1",
+#'   embed = list(
+#'     model = "multilingual-e5-large",
+#'     field_map = list(text = "chunk_text")
+#'   )
+#' )
+#'
+#' # With custom metric and input types
+#' create_index_for_model(
+#'   name = "my-index",
+#'   cloud = "aws",
+#'   region = "us-east-1",
+#'   embed = list(
+#'     model = "multilingual-e5-large",
+#'     field_map = list(text = "content"),
+#'     metric = "dotproduct",
+#'     read_parameters = list(input_type = "query"),
+#'     write_parameters = list(input_type = "passage")
+#'   )
+#' )
+#' }
+create_index_for_model <- function(name, cloud, region, embed, deletion_protection = "disabled", tags = NULL) {
+
+  # assertions
+  assertthat::assert_that(!missing(name), msg = "Please provide an index name.")
+  assertthat::assert_that(!missing(cloud), msg = "Please provide a cloud provider.")
+  assertthat::assert_that(!missing(region), msg = "Please provide a region.")
+  assertthat::assert_that(!missing(embed), msg = "Please provide embed configuration.")
+  assertthat::assert_that(
+    is.list(embed) && !is.null(embed$model) && !is.null(embed$field_map),
+    msg = "embed must be a list with 'model' and 'field_map' fields."
+  )
+  assertthat::assert_that(
+    cloud %in% c("aws", "gcp", "azure"),
+    msg = "cloud must be one of: 'aws', 'gcp', 'azure'."
+  )
+
+  # get URL
+  pinecone_url <- get_control_plane_url("indexes/create-for-model")
+
+  # get token
+  pinecone_token <- get_api_key()
+
+  # Build request body
+  body <- list(
+    name = name,
+    cloud = cloud,
+    region = region,
+    embed = embed
+  )
+
+  # Add deletion protection
+  if (!is.null(deletion_protection)) {
+    body$deletion_protection <- deletion_protection
+  }
+
+  # Add tags if provided
+  if (!is.null(tags)) {
+    body$tags <- tags
+  }
+
+  # get response
+  response <- httr::POST(
+    pinecone_url,
+    body = jsonlite::toJSON(body, auto_unbox = TRUE),
+    encode = "raw",
+    httr::accept_json(),
+    httr::content_type_json(),
+    httr::add_headers(`Api-Key` = pinecone_token)
+  )
+
+  result <- handle_respons(response)
+
+  return(result)
+
+}

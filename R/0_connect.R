@@ -49,6 +49,36 @@ get_control_plane_url <- function(set_path = NA) {
 }
 
 
+#' Get Pinecone Inference API URL
+#'
+#' Constructs URLs for Pinecone's Inference API (api.pinecone.io).
+#' This is used for embedding and reranking operations.
+#'
+#' @param set_path API path (e.g., "embed", "rerank")
+#'
+#' @return Full URL string for the inference API
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' get_inference_url("embed")
+#' get_inference_url("rerank")
+#' }
+get_inference_url <- function(set_path = NA) {
+
+  # Base URL for inference API (same host as control plane)
+  pinecone_api_url <- "https://api.pinecone.io/"
+
+  if(!is.na(set_path)){
+    # create url
+    pinecone_api_url <- httr::modify_url(pinecone_api_url, path = set_path)
+  }
+
+  return(pinecone_api_url)
+
+}
+
+
 #' Get Pinecone Data Plane URL
 #'
 #' Constructs URLs for Pinecone's data plane API using the index host.

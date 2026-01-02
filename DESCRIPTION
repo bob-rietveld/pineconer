@@ -7,10 +7,11 @@ Authors@R: person("Bob", "Rietveld",
                   role = c("aut", "cre"))
 Description: Provides a comprehensive R interface to the Pinecone Vector
     Database API. Supports index management (create, configure, delete),
-    collection operations, and vector operations (query, upsert, fetch,
-    update, delete). Uses the Pinecone Global API (api.pinecone.io)
-    introduced in April 2024. Enables similarity search and retrieval
-    augmented generation (RAG) workflows from R.
+    collection operations, vector operations (query, upsert, fetch, update,
+    delete, list), inference operations (embed, rerank), integrated inference
+    (records upsert/search with auto-embedding), and bulk import operations.
+    Uses the Pinecone Global API (api.pinecone.io). Enables similarity search
+    and retrieval augmented generation (RAG) workflows from R.
 License: MIT + file LICENSE
 URL: https://github.com/bob-rietveld/pineconer
 BugReports: https://github.com/bob-rietveld/pineconer/issues

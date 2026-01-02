@@ -386,3 +386,88 @@ vector_upsert <- function(index, vectors, name_space = ""){
 }
 
 
+#' List Vector IDs
+#'
+#' Lists vector IDs in a namespace of a serverless index. Returns paginated results
+#' with optional prefix filtering.
+#'
+#' @param index Name of the index
+#' @param namespace Namespace to list vectors from (default: "")
+#' @param prefix Optional prefix to filter vector IDs
+#' @param limit Maximum number of IDs to return per page (default: 100, max: 100)
+#' @param pagination_token Token for fetching the next page of results
+#'
+#' @return List with http response, content (vector IDs and pagination info), and status_code.
+#'   Content includes:
+#'   - vectors: list of vector objects with id field
+#'   - pagination: list with next token if more results exist
+#'   - namespace: the namespace queried
+#'
+#' @details
+#' This endpoint is only available for serverless indexes. For pod-based indexes,
+#' use vector_fetch() with known IDs or vector_query() with metadata filters.
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # List first 100 vector IDs
+#' result <- vector_list("my-index")
+#'
+#' # List with prefix filter
+#' result <- vector_list("my-index", prefix = "doc_")
+#'
+#' # Paginate through results
+#' result <- vector_list("my-index", limit = 50)
+#' if (!is.null(result$content$pagination$next)) {
+#'   next_page <- vector_list("my-index",
+#'     pagination_token = result$content$pagination$next)
+#' }
+#' }
+vector_list <- function(index, namespace = "", prefix = NULL, limit = 100, pagination_token = NULL) {
+
+  # assertions
+  assertthat::assert_that(!is.na(index), msg = "Please provide an index name.")
+  assertthat::assert_that(
+    is.numeric(limit) && limit > 0 && limit <= 100,
+    msg = "limit must be a number between 1 and 100."
+  )
+
+  # get index host
+  temp_index <- describe_index(index_name = index)
+  host <- get_index_host(temp_index)
+
+  # get URL using data plane
+  pinecone_url <- get_data_plane_url(host, "vectors/list")
+
+  # get token
+  pinecone_token <- get_api_key()
+
+  # build query params
+  query_params <- list(limit = limit)
+
+  if (namespace != "") {
+    query_params$namespace <- namespace
+  }
+
+  if (!is.null(prefix)) {
+    query_params$prefix <- prefix
+  }
+
+  if (!is.null(pagination_token)) {
+    query_params$paginationToken <- pagination_token
+  }
+
+  # get response
+  response <- httr::GET(
+    pinecone_url,
+    query = query_params,
+    httr::accept_json(),
+    httr::add_headers(`Api-Key` = pinecone_token)
+  )
+
+  result <- handle_respons(response)
+
+  return(result)
+
+}
