@@ -1,5 +1,6 @@
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+
+
 
 # pineconer
 
@@ -15,14 +16,19 @@ This package uses the **Pinecone Global API** (`api.pinecone.io`) introduced in 
 ## Features
 
 - **Index Management**: Create, configure, describe, and delete indexes (serverless and pod-based)
+- **Inference API**: Generate embeddings and rerank results using Pinecone's hosted models
+- **Integrated Inference**: Create indexes with built-in embedding models for automatic text vectorization
 - **Collection Operations**: Create snapshots of indexes for backup and restoration
 - **Vector Operations**: Query, upsert, fetch, update, and delete vectors
+- **Bulk Import**: Import vectors from cloud storage (S3/GCS) at scale
+- **Assistant API**: Build RAG applications with document upload, chat, and evaluation
 - **Tidy Output**: Vector operations return clean tibble format by default
 - **Metadata Filtering**: Filter queries using Pinecone's metadata query language
 
 ## Installation
 
 You can install the development version of pineconer from GitHub:
+
 
 ``` r
 # install.packages("remotes")
@@ -33,11 +39,11 @@ remotes::install_github("bob-rietveld/pineconer")
 
 Before using `pineconer`, set your Pinecone API key as an environment variable. The easiest way is to add it to your `~/.Renviron` file:
 
+
 ``` r
 # Open your .Renviron file
 usethis::edit_r_environ()
 ```
-
 Then add:
 
 ```
@@ -45,6 +51,7 @@ PINECONE_API_KEY=your_api_key_here
 ```
 
 Restart R or reload the environment:
+
 
 ``` r
 readRenviron("~/.Renviron")
@@ -54,6 +61,7 @@ readRenviron("~/.Renviron")
 
 ## Quick Start
 
+
 ``` r
 library(pineconer)
 
@@ -62,7 +70,8 @@ list_indexes()
 
 # Create a serverless index
 create_index(
-  name = "my-index",
+
+name = "my-index",
   dimension = 1536,
   metric = "cosine",
   spec = list(serverless = list(cloud = "aws", region = "us-east-1"))
@@ -89,6 +98,7 @@ print(results$content)
 ### Index Operations
 
 Manage your Pinecone indexes:
+
 
 ``` r
 # List all indexes
@@ -132,6 +142,7 @@ delete_index("my-index")
 
 Collections are static snapshots of an index:
 
+
 ``` r
 # List all collections
 list_collections()
@@ -149,6 +160,7 @@ delete_collection("my-backup")
 ### Vector Operations
 
 Work with vectors in your index:
+
 
 ``` r
 # Get index statistics
@@ -218,6 +230,7 @@ vector_delete("my-index", delete_all = TRUE, name_space = "old-data")
 
 Namespaces partition vectors within an index:
 
+
 ``` r
 # Upsert to a specific namespace
 vector_upsert("my-index", vectors = vectors, name_space = "production")
@@ -232,6 +245,240 @@ results <- vector_query(
 
 # Fetch from a namespace
 fetched <- vector_fetch("my-index", ids = c("doc1"), namespace = "production")
+```
+
+### Inference API
+
+Generate embeddings and rerank results using Pinecone's hosted models:
+
+
+``` r
+# Generate embeddings for documents
+embeddings <- embed(
+ model = "multilingual-e5-large",
+ inputs = c("The quick brown fox", "jumps over the lazy dog"),
+ input_type = "passage"
+)
+
+# Generate embedding for a query
+query_embedding <- embed(
+ model = "multilingual-e5-large",
+ inputs = "What does the fox do?",
+ input_type = "query"
+)
+
+# Use the embedding for vector search
+results <- vector_query(
+ "my-index",
+ vector = query_embedding$content$values[[1]],
+ top_k = 10
+)
+
+# Rerank search results for better relevance
+documents <- c(
+ "The quick brown fox jumps over the lazy dog",
+ "A fast auburn fox leaps above a sleepy canine",
+ "The weather is nice today"
+)
+
+reranked <- rerank(
+ model = "pinecone-rerank-v0",
+ query = "What did the fox do?",
+ documents = documents,
+ top_n = 2
+)
+print(reranked$content)
+```
+
+### Integrated Inference (Records API)
+
+Create indexes with built-in embedding models for automatic text vectorization:
+
+
+``` r
+# Create an index with integrated embedding model
+create_index_for_model(
+ name = "my-semantic-index",
+ cloud = "aws",
+ region = "us-east-1",
+ embed = list(
+   model = "multilingual-e5-large",
+   field_map = list(text = "chunk_text")
+ )
+)
+
+# Upsert records with text (automatically embedded)
+records_upsert(
+ index = "my-semantic-index",
+ records = list(
+   list(`_id` = "doc1", chunk_text = "Machine learning transforms industries"),
+   list(`_id` = "doc2", chunk_text = "Natural language processing advances")
+ )
+)
+
+# Search with text queries (automatically embedded)
+results <- records_search(
+ index = "my-semantic-index",
+ query = "How is AI changing business?",
+ top_k = 5
+)
+
+# Search with metadata filter
+results <- records_search(
+ index = "my-semantic-index",
+ query = "machine learning applications",
+ filter = list(category = list(`$eq` = "tech")),
+ top_k = 10
+)
+
+# Search with reranking for better results
+results <- records_search(
+ index = "my-semantic-index",
+ query = "How does AI impact healthcare?",
+ top_k = 100,
+ rerank = list(
+   model = "pinecone-rerank-v0",
+   top_n = 10,
+   rank_fields = c("chunk_text")
+ )
+)
+```
+
+### Bulk Import Operations
+
+Import vectors from cloud storage at scale:
+
+
+``` r
+# Start an import from S3
+import_result <- start_import(
+ index = "my-index",
+ uri = "s3://my-bucket/vectors/"
+)
+import_id <- import_result$content$id
+
+# Check import status
+status <- describe_import("my-index", import_id)
+print(status$content$status)
+print(status$content$percentComplete)
+
+# List all imports for an index
+imports <- list_imports("my-index")
+
+# Cancel an in-progress import
+cancel_import("my-index", import_id)
+```
+
+### Assistant API
+
+Build RAG applications with Pinecone Assistants:
+
+
+``` r
+# Create an assistant
+create_assistant(
+ name = "my-assistant",
+ instructions = "Use American English for spelling and grammar.",
+ region = "us"
+)
+
+# List all assistants
+list_assistants()
+
+# Get assistant details
+describe_assistant("my-assistant")
+
+# Update assistant instructions
+update_assistant(
+ assistant_name = "my-assistant",
+ instructions = "Be concise. Use bullet points where appropriate."
+)
+
+# Delete an assistant (also deletes all uploaded files)
+delete_assistant("my-assistant")
+```
+
+### Assistant File Operations
+
+Upload and manage documents for RAG:
+
+
+``` r
+# Upload a document
+upload_result <- assistant_upload_file(
+ assistant_name = "my-assistant",
+ file_path = "/path/to/document.pdf"
+)
+file_id <- upload_result$content$id
+
+# Upload with metadata
+assistant_upload_file(
+ assistant_name = "my-assistant",
+ file_path = "/path/to/report.pdf",
+ metadata = list(year = 2024, department = "research")
+)
+
+# List all files in an assistant
+files <- assistant_list_files("my-assistant")
+
+# Check file processing status
+file_status <- assistant_describe_file("my-assistant", file_id)
+print(file_status$content$status)  # "Processing", "Available", or "Failed"
+
+# Delete a file
+assistant_delete_file("my-assistant", file_id)
+```
+
+### Assistant Chat Operations
+
+Chat with assistants and retrieve context:
+
+
+``` r
+# Chat with an assistant
+response <- assistant_chat(
+ assistant_name = "my-assistant",
+ messages = list(
+   list(role = "user", content = "What is the main topic of the document?")
+ )
+)
+print(response$content$message$content)
+print(response$content$citations)
+
+# Multi-turn conversation
+response <- assistant_chat(
+ assistant_name = "my-assistant",
+ messages = list(
+   list(role = "user", content = "Who is the CEO?"),
+   list(role = "assistant", content = "The CEO is John Smith."),
+   list(role = "user", content = "When did they start?")
+ )
+)
+
+# Chat with metadata filter
+response <- assistant_chat(
+ assistant_name = "my-assistant",
+ messages = list(list(role = "user", content = "Summarize the 2024 report")),
+ filter = list(year = 2024)
+)
+
+# Retrieve context without generating a response (for custom RAG)
+context <- assistant_context(
+ assistant_name = "my-assistant",
+ query = "What are the revenue figures?",
+ top_k = 10
+)
+print(context$content$snippets)
+
+# Evaluate answer quality
+eval_result <- assistant_evaluate(
+ question = "What are the capital cities of France and Spain?",
+ answer = "Paris is the capital of France.",
+ ground_truth_answer = "Paris is the capital of France and Madrid is the capital of Spain."
+)
+print(eval_result$content$correctness)   # Precision
+print(eval_result$content$completeness)  # Recall
+print(eval_result$content$alignment)     # Combined score
 ```
 
 ## Response Structure
@@ -263,6 +510,7 @@ Common status codes:
 
 ## Error Handling
 
+
 ``` r
 result <- describe_index("non-existent-index")
 
@@ -288,6 +536,19 @@ For pod-based indexes, available pod types are:
 - **p1**: Performance-optimized (`p1.x1`, `p1.x2`, `p1.x4`, `p1.x8`)
 - **p2**: Second-gen performance (`p2.x1`, `p2.x2`, `p2.x4`, `p2.x8`)
 
+## Embedding Models
+
+Available models for `embed()` and `create_index_for_model()`:
+- **multilingual-e5-large**: Dense embeddings (1024 dimensions), works across languages
+- **pinecone-sparse-english-v0**: Sparse embeddings for keyword search
+
+## Reranking Models
+
+Available models for `rerank()` and `records_search()`:
+- **pinecone-rerank-v0**: High-performance reranking model
+- **bge-reranker-v2-m3**: Multilingual reranking model
+- **cohere-rerank-3.5**: Cohere's reranking model (supports multiple rank fields)
+
 ## Dependencies
 
 - [httr](https://httr.r-lib.org/): HTTP requests
@@ -304,5 +565,4 @@ For pod-based indexes, available pod types are:
 - [Package Vignette](vignettes/getting-started.Rmd): Detailed tutorial with iris dataset example
 
 ## License
-
 MIT
