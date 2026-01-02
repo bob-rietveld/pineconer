@@ -2,18 +2,37 @@
 % Please edit documentation in R/01_index_operations.R
 \name{configure_index}
 \alias{configure_index}
-\title{Configure index in terms of replicas and pod size}
+\title{Configure Index}
 \usage{
-configure_index(index_name, replicas, pod_type, controller = "controller")
+configure_index(
+  index_name,
+  replicas = NULL,
+  pod_type = NULL,
+  deletion_protection = NULL
+)
 }
 \arguments{
-\item{replicas}{integer
-The desired number of replicas for the index.}
+\item{index_name}{Name of the index to configure}
 
-\item{pod_type}{The new pod type for the index. One of s1, p1, or p2 appended with . and one of x1, x2, x4, or x8.}
+\item{replicas}{Integer. The desired number of replicas for the index (pod-based only)}
 
-\item{controller}{}
+\item{pod_type}{The new pod type. One of s1, p1, or p2 appended with . and one of x1, x2, x4, or x8 (pod-based only)}
+
+\item{deletion_protection}{Whether to enable deletion protection ("enabled" or "disabled")}
+}
+\value{
+List with http response, content, and status_code
 }
 \description{
-Configure index in terms of replicas and pod size
+Updates index configuration. For pod-based indexes, can change replicas and pod type.
+For all indexes, can update deletion protection.
+}
+\examples{
+\dontrun{
+# Update pod configuration
+configure_index("my-index", replicas = 2, pod_type = "p1.x2")
+
+# Enable deletion protection
+configure_index("my-index", deletion_protection = "enabled")
+}
 }

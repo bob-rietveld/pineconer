@@ -7,8 +7,29 @@
 handle_respons(response, tidy = FALSE)
 }
 \arguments{
-\item{tidy}{}
+\item{response}{An httr response object from a Pinecone API call.}
+
+\item{tidy}{Logical. If TRUE, returns only the parsed content instead of
+the full response structure. Default is FALSE.}
+}
+\value{
+A list with three components:
+\describe{
+  \item{http}{The raw httr response object}
+  \item{content}{Parsed response content (NULL if status code is not 200)}
+  \item{status_code}{HTTP status code of the response}
+}
+If \code{tidy = TRUE}, returns only the parsed content directly.
 }
 \description{
-Handle the API Response
+Parses and standardizes API responses from Pinecone into a consistent format.
 }
+\examples{
+\dontrun{
+response <- httr::GET("https://api.pinecone.io/indexes")
+result <- handle_respons(response)
+result$status_code
+result$content
+}
+}
+\keyword{internal}

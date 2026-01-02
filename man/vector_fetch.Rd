@@ -2,13 +2,27 @@
 % Please edit documentation in R/03_vector_operations.R
 \name{vector_fetch}
 \alias{vector_fetch}
-\title{Fetch}
+\title{Fetch Vectors}
 \usage{
-vector_fetch(index, ids, namespace, tidy = TRUE)
+vector_fetch(index, ids, namespace = "", tidy = TRUE)
 }
 \arguments{
-\item{ids}{}
+\item{index}{Name of the index}
+
+\item{ids}{Vector IDs to fetch (character vector)}
+
+\item{namespace}{Namespace to fetch from (default: "")}
+
+\item{tidy}{Whether to return tidy tibble format (default: TRUE)}
+}
+\value{
+List with http response, content (vectors), and status_code
 }
 \description{
-Fetch
+Retrieves vectors by ID from an index.
+}
+\examples{
+\dontrun{
+vector_fetch("my-index", ids = c("vec1", "vec2"), namespace = "")
+}
 }

@@ -4,16 +4,27 @@
 \alias{describe_index}
 \title{Describe Index}
 \usage{
-describe_index(index_name, controller = "controller")
+describe_index(index_name)
 }
 \arguments{
-\item{return_controller}{}
+\item{index_name}{Name of the index to describe}
 }
 \value{
-200 Configuration information and deployment status of the index
-404 Index not found
-500 Internal error. Can be caused by invalid parameters.
+List with http response, content (index configuration including host), and status_code
+
+The content includes:
+- name: Index name
+- dimension: Vector dimension
+- metric: Distance metric
+- host: Data plane host URL for vector operations
+- status: Index status (ready, etc.)
+- spec: Index specification (serverless or pod config)
 }
 \description{
-Describe Index
+Returns configuration information and deployment status of an index.
+}
+\examples{
+\dontrun{
+describe_index("my-index")
+}
 }

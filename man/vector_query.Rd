@@ -16,8 +16,30 @@ vector_query(
 )
 }
 \arguments{
-\item{tidy}{}
+\item{index}{Name of the index to query}
+
+\item{vector}{Query vector (numeric vector)}
+
+\item{top_k}{Number of results to return (default: 5)}
+
+\item{filter}{Metadata filter (list)}
+
+\item{name_space}{Namespace to query (default: "")}
+
+\item{include_metadata}{Whether to include metadata in results (default: TRUE)}
+
+\item{include_values}{Whether to include vector values in results (default: FALSE)}
+
+\item{tidy}{Whether to return tidy tibble format (default: TRUE)}
+}
+\value{
+List with http response, content (matches), and status_code
 }
 \description{
-Query Vectors
+Searches an index using a query vector. Returns the most similar vectors.
+}
+\examples{
+\dontrun{
+vector_query("my-index", vector = rep(0.1, 1536), top_k = 10)
+}
 }

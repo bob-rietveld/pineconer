@@ -121,10 +121,10 @@ vector_query <- function( index,
   result <- handle_respons(response)
 
   if(tidy && result$status_code == 200 && !is.null(result$content$matches)){
-
-    result$content <-  tibble::tibble(data = result$content$matches) %>%
-                       tidyr::unnest_wider(data) %>%
-                       tidyr::unnest_wider(metadata, names_sep = "_")
+    tidy_result <- tibble::tibble(data = result$content$matches)
+    tidy_result <- tidyr::unnest_wider(tidy_result, "data")
+    tidy_result <- tidyr::unnest_wider(tidy_result, "metadata", names_sep = "_")
+    result$content <- tidy_result
   }
 
   return(result)

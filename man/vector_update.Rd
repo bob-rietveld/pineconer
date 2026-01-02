@@ -2,19 +2,40 @@
 % Please edit documentation in R/03_vector_operations.R
 \name{vector_update}
 \alias{vector_update}
-\title{Update Vectors}
+\title{Update Vector}
 \usage{
 vector_update(
   index,
-  embeddings = NULL,
   vector_id,
-  meta_data = "",
+  values = NULL,
+  meta_data = NULL,
   name_space = ""
 )
 }
 \arguments{
-\item{name_space}{}
+\item{index}{Name of the index}
+
+\item{vector_id}{ID of the vector to update}
+
+\item{values}{New vector values (numeric vector, optional)}
+
+\item{meta_data}{New metadata (list, optional)}
+
+\item{name_space}{Namespace of the vector (default: "")}
+}
+\value{
+List with http response, content, and status_code
 }
 \description{
-Update Vectors
+Updates a vector's values or metadata.
+}
+\examples{
+\dontrun{
+# Update metadata only
+vector_update("my-index", vector_id = "vec1", meta_data = list(category = "new"))
+
+# Update values and metadata
+vector_update("my-index", vector_id = "vec1", values = rep(0.1, 1536),
+              meta_data = list(category = "new"))
+}
 }

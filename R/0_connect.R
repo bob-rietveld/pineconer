@@ -115,12 +115,30 @@ get_url <- function(controller, set_path = NA) {
 
 #' Handle the API Response
 #'
-#' @param response
-#' @param tidy
+#' Parses and standardizes API responses from Pinecone into a consistent format.
 #'
-#' @return
+#' @param response An httr response object from a Pinecone API call.
+#' @param tidy Logical. If TRUE, returns only the parsed content instead of
+#'   the full response structure. Default is FALSE.
+#'
+#' @return A list with three components:
+#' \describe{
+#'   \item{http}{The raw httr response object}
+#'   \item{content}{Parsed response content (NULL if status code is not 200)}
+#'   \item{status_code}{HTTP status code of the response}
+#' }
+#' If \code{tidy = TRUE}, returns only the parsed content directly.
+#'
+#' @keywords internal
+#' @export
 #'
 #' @examples
+#' \dontrun{
+#' response <- httr::GET("https://api.pinecone.io/indexes")
+#' result <- handle_respons(response)
+#' result$status_code
+#' result$content
+#' }
 handle_respons <- function( response , tidy = FALSE ){
 
   # set response object
@@ -208,17 +226,29 @@ extract_vector_controller <- function(index, vector = "svc") {
   return(host)
 }
 
-#' Tidy vectors
+#' Tidy Vector Data
 #'
-#' @param input
+#' Transforms raw vector data from Pinecone API responses into a tidy tibble format.
 #'
-#' @return
+#' @param input A list containing a \code{vectors} element from a Pinecone
+#'   fetch or query response.
+#'
+#' @return A tibble with columns for vector IDs, values, and any metadata fields.
+#'   Metadata columns are prefixed with their field names.
+#'
+#' @keywords internal
+#' @export
 #'
 #' @examples
+#' \dontrun{
+#' result <- vector_fetch("my-index", ids = c("vec1", "vec2"), tidy = FALSE)
+#' tidy_vectors <- handle_vectors(result$content)
+#' }
 handle_vectors <- function(input){
 
-  tibble::tibble(data = input$vectors) %>%
-  tidyr::unnest_wider(data) %>%
-  tidyr::unnest_wider(metadata)
+  result <- tibble::tibble(data = input$vectors)
+  result <- tidyr::unnest_wider(result, "data")
+  result <- tidyr::unnest_wider(result, "metadata")
+  result
 
 }

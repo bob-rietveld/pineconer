@@ -2,7 +2,7 @@
 % Please edit documentation in R/03_vector_operations.R
 \name{vector_delete}
 \alias{vector_delete}
-\title{Title}
+\title{Delete Vectors}
 \usage{
 vector_delete(
   index,
@@ -13,8 +13,28 @@ vector_delete(
 )
 }
 \arguments{
-\item{filter}{}
+\item{index}{Name of the index}
+
+\item{ids}{Vector IDs to delete (character vector)}
+
+\item{delete_all}{Whether to delete all vectors (default: FALSE)}
+
+\item{name_space}{Namespace to delete from (default: "")}
+
+\item{filter}{Metadata filter for selective deletion (list)}
+}
+\value{
+List with http response, content, and status_code
 }
 \description{
-Title
+Deletes vectors from an index by ID, filter, or all vectors.
+}
+\examples{
+\dontrun{
+# Delete specific vectors
+vector_delete("my-index", ids = c("vec1", "vec2"))
+
+# Delete all vectors in namespace
+vector_delete("my-index", delete_all = TRUE, name_space = "my-namespace")
+}
 }

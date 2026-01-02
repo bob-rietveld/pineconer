@@ -6,6 +6,14 @@
 \usage{
 list_collections()
 }
+\value{
+List with http response, content (list of collections), and status_code
+}
 \description{
-List Collections
+Lists all collections in your Pinecone project.
+}
+\examples{
+\dontrun{
+list_collections()
+}
 }

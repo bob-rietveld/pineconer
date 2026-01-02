@@ -2,13 +2,21 @@
 % Please edit documentation in R/02_collection_operations.R
 \name{describe_collection}
 \alias{describe_collection}
-\title{Describe collection}
+\title{Describe Collection}
 \usage{
-describe_collection(collection_name, controller = "controller")
+describe_collection(collection_name)
 }
 \arguments{
-\item{collection_name}{}
+\item{collection_name}{Name of the collection to describe}
+}
+\value{
+List with http response, content (collection details), and status_code
 }
 \description{
-Describe collection
+Returns information about a collection.
+}
+\examples{
+\dontrun{
+describe_collection("my-collection")
+}
 }

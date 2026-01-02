@@ -6,6 +6,14 @@
 \usage{
 get_api_key()
 }
+\value{
+API key string
+}
 \description{
 Get Api Key
+}
+\examples{
+\dontrun{
+get_api_key()
+}
 }
