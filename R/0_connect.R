@@ -79,6 +79,102 @@ get_inference_url <- function(set_path = NA) {
 }
 
 
+#' Get Pinecone Assistant Control Plane URL
+#'
+#' Constructs URLs for Pinecone's Assistant control plane API (api.pinecone.io).
+#' This is used for assistant management operations (create, list, describe, delete, update).
+#'
+#' @param set_path API path (e.g., "assistant/assistants", "assistant/assistants/my-assistant")
+#'
+#' @return Full URL string for the assistant control plane API
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' get_assistant_control_url("assistant/assistants")
+#' get_assistant_control_url("assistant/assistants/my-assistant")
+#' }
+get_assistant_control_url <- function(set_path = NA) {
+
+  # Base URL for assistant control plane API
+  pinecone_api_url <- "https://api.pinecone.io/"
+
+  if(!is.na(set_path)){
+    # create url
+    pinecone_api_url <- httr::modify_url(pinecone_api_url, path = set_path)
+  }
+
+  return(pinecone_api_url)
+
+}
+
+
+#' Get Pinecone Assistant Data Plane URL
+#'
+#' Constructs URLs for Pinecone's Assistant data plane API.
+#' This is used for file operations and chat operations.
+#' The data plane host is typically returned when creating/describing an assistant.
+#'
+#' @param host The assistant data plane host (e.g., "prod-1-data.ke.pinecone.io")
+#' @param set_path API path (e.g., "assistant/files/my-assistant", "assistant/chat/my-assistant")
+#'
+#' @return Full URL string for the assistant data plane API
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' get_assistant_data_url("prod-1-data.ke.pinecone.io", "assistant/files/my-assistant")
+#' get_assistant_data_url("prod-1-data.ke.pinecone.io", "assistant/chat/my-assistant")
+#' }
+get_assistant_data_url <- function(host, set_path = NA) {
+
+  # Remove https:// prefix if present
+  host <- gsub("^https://", "", host)
+
+  # Construct base URL from host
+  pinecone_api_url <- glue::glue("https://{host}/")
+
+  if(!is.na(set_path)){
+    # create url
+    pinecone_api_url <- httr::modify_url(pinecone_api_url, path = set_path)
+  }
+
+  return(pinecone_api_url)
+
+}
+
+
+#' Get Assistant Host
+#'
+#' Extracts the data plane host from an assistant description for data plane operations.
+#'
+#' @param assistant Assistant description object from describe_assistant()
+#'
+#' @return Host string for assistant data plane API calls
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' assistant <- describe_assistant("my-assistant")
+#' host <- get_assistant_host(assistant)
+#' }
+get_assistant_host <- function(assistant) {
+
+  # Assistant API returns host directly in the response
+
+  host <- assistant$content$host
+
+  if (is.null(host)) {
+    stop("Could not extract host from assistant description. Ensure the assistant exists.")
+  }
+
+  # Remove https:// prefix if present
+  host <- gsub("^https://", "", host)
+
+  return(host)
+}
+
+
 #' Get Pinecone Data Plane URL
 #'
 #' Constructs URLs for Pinecone's data plane API using the index host.
