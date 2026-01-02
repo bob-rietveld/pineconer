@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Getting Started with pineconer</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Getting Started with pineconer</h1>
+
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>The <code>pineconer</code> package provides an R interface to the <a href="https://www.pinecone.io/">Pinecone Vector Database</a>, a managed
+vector database designed for machine learning applications. This
+vignette demonstrates how to use <code>pineconer</code> for common
+vector database operations using the classic iris dataset.</p>
+</div>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
+<div id="installation" class="section level3">
+<h3>Installation</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Install from GitHub (when available)</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co"># remotes::install_github(&quot;bob-rietveld/pineconer&quot;)</span></span></code></pre></div>
+</div>
+<div id="api-key-configuration" class="section level3">
+<h3>API Key Configuration</h3>
+<p>Before using <code>pineconer</code>, you need to set your Pinecone
+API key. Add it to your <code>~/.Renviron</code> file:</p>
+<pre><code>PINECONE_API_KEY=your_api_key_here</code></pre>
+<p>Then restart R or run:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">readRenviron</span>(<span class="st">&quot;~/.Renviron&quot;</span>)</span></code></pre></div>
+<p>Load the package:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">library</span>(pineconer)</span></code></pre></div>
+</div>
+</div>
+<div id="working-with-indexes" class="section level2">
+<h2>Working with Indexes</h2>
+<div id="list-existing-indexes" class="section level3">
+<h3>List Existing Indexes</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># List all indexes in your project</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>indexes <span class="ot">&lt;-</span> <span class="fu">list_indexes</span>()</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">print</span>(indexes<span class="sc">$</span>content)</span></code></pre></div>
+</div>
+<div id="create-an-index" class="section level3">
+<h3>Create an Index</h3>
+<p>Pinecone supports two types of indexes: serverless and pod-based.</p>
+<div id="serverless-index-recommended" class="section level4">
+<h4>Serverless Index (Recommended)</h4>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Create a serverless index for storing 4-dimensional vectors (like iris features)</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">create_index</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">name =</span> <span class="st">&quot;iris-demo&quot;</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">dimension =</span> <span class="dv">4</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="at">metric =</span> <span class="st">&quot;cosine&quot;</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  <span class="at">spec =</span> <span class="fu">list</span>(</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>    <span class="at">serverless =</span> <span class="fu">list</span>(</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>      <span class="at">cloud =</span> <span class="st">&quot;aws&quot;</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>      <span class="at">region =</span> <span class="st">&quot;us-east-1&quot;</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>    )</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>  )</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>)</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="fu">print</span>(result<span class="sc">$</span>status_code)  <span class="co"># 201 on success</span></span></code></pre></div>
+</div>
+<div id="pod-based-index" class="section level4">
+<h4>Pod-Based Index</h4>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Alternative: Create a pod-based index</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">create_index</span>(</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">name =</span> <span class="st">&quot;iris-pod-demo&quot;</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">dimension =</span> <span class="dv">4</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">metric =</span> <span class="st">&quot;cosine&quot;</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">spec =</span> <span class="fu">list</span>(</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>    <span class="at">pod =</span> <span class="fu">list</span>(</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>      <span class="at">environment =</span> <span class="st">&quot;us-east-1-aws&quot;</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>      <span class="at">pod_type =</span> <span class="st">&quot;p1.x1&quot;</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>      <span class="at">pods =</span> <span class="dv">1</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>    )</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>  )</span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+</div>
+<div id="describe-an-index" class="section level3">
+<h3>Describe an Index</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Get index details including the host for data operations</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>index_info <span class="ot">&lt;-</span> <span class="fu">describe_index</span>(<span class="st">&quot;iris-demo&quot;</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="fu">print</span>(index_info<span class="sc">$</span>content<span class="sc">$</span>host)</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="fu">print</span>(index_info<span class="sc">$</span>content<span class="sc">$</span>status)</span></code></pre></div>
+</div>
+</div>
+<div id="vector-operations-with-the-iris-dataset" class="section level2">
+<h2>Vector Operations with the Iris Dataset</h2>
+<p>The iris dataset contains 150 observations with 4 numeric features,
+making it ideal for demonstrating vector operations.</p>
+<div id="preparing-data" class="section level3">
+<h3>Preparing Data</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Load iris dataset</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">data</span>(iris)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co"># Prepare vectors for upserting</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>vectors <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(iris), <span class="cf">function</span>(i) {</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>    <span class="at">id =</span> <span class="fu">paste0</span>(<span class="st">&quot;iris-&quot;</span>, i),</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">as.numeric</span>(iris[i, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>]),</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>    <span class="at">metadata =</span> <span class="fu">list</span>(</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>      <span class="at">species =</span> <span class="fu">as.character</span>(iris<span class="sc">$</span>Species[i]),</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>      <span class="at">sepal_length =</span> iris<span class="sc">$</span>Sepal.Length[i],</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>      <span class="at">sepal_width =</span> iris<span class="sc">$</span>Sepal.Width[i]</span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>    )</span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>  )</span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>})</span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co"># Preview first vector</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="fu">print</span>(vectors[[<span class="dv">1</span>]])</span></code></pre></div>
+</div>
+<div id="upsert-vectors" class="section level3">
+<h3>Upsert Vectors</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Upsert vectors in batches (Pinecone recommends batches of 100)</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>batch_size <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>n_batches <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(<span class="fu">length</span>(vectors) <span class="sc">/</span> batch_size)</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_batches) {</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  start_idx <span class="ot">&lt;-</span> (i <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> batch_size <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  end_idx <span class="ot">&lt;-</span> <span class="fu">min</span>(i <span class="sc">*</span> batch_size, <span class="fu">length</span>(vectors))</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  result <span class="ot">&lt;-</span> <span class="fu">vector_upsert</span>(</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>    <span class="at">index =</span> <span class="st">&quot;iris-demo&quot;</span>,</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>    <span class="at">vectors =</span> vectors[start_idx<span class="sc">:</span>end_idx]</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>  )</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Batch&quot;</span>, i, <span class="st">&quot;- Status:&quot;</span>, result<span class="sc">$</span>status_code, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a>}</span></code></pre></div>
+</div>
+<div id="query-vectors" class="section level3">
+<h3>Query Vectors</h3>
+<p>Find similar flowers based on their measurements:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Query using a sample vector (first iris observation)</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>query_vector <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(iris[<span class="dv">1</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>])</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">vector_query</span>(</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">index =</span> <span class="st">&quot;iris-demo&quot;</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  <span class="at">vector =</span> query_vector,</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>  <span class="at">top_k =</span> <span class="dv">5</span>,</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  <span class="at">include_metadata =</span> <span class="cn">TRUE</span></span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>)</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co"># Results are returned as a tidy tibble by default</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="fu">print</span>(results<span class="sc">$</span>content)</span></code></pre></div>
+</div>
+<div id="query-with-metadata-filters" class="section level3">
+<h3>Query with Metadata Filters</h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Find similar vectors but only among setosa species</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">vector_query</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="at">index =</span> <span class="st">&quot;iris-demo&quot;</span>,</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="at">vector =</span> query_vector,</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="at">top_k =</span> <span class="dv">5</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  <span class="at">filter =</span> <span class="fu">list</span>(<span class="at">species =</span> <span class="fu">list</span>(<span class="st">`</span><span class="at">$eq</span><span class="st">`</span> <span class="ot">=</span> <span class="st">&quot;setosa&quot;</span>))</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>)</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="fu">print</span>(results<span class="sc">$</span>content)</span></code></pre></div>
+</div>
+<div id="fetch-specific-vectors" class="section level3">
+<h3>Fetch Specific Vectors</h3>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Fetch vectors by ID</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>fetched <span class="ot">&lt;-</span> <span class="fu">vector_fetch</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="at">index =</span> <span class="st">&quot;iris-demo&quot;</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="at">ids =</span> <span class="fu">c</span>(<span class="st">&quot;iris-1&quot;</span>, <span class="st">&quot;iris-2&quot;</span>, <span class="st">&quot;iris-3&quot;</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>)</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="fu">print</span>(fetched<span class="sc">$</span>content)</span></code></pre></div>
+</div>
+<div id="update-vector-metadata" class="section level3">
+<h3>Update Vector Metadata</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Update metadata for a specific vector</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">vector_update</span>(</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="at">index =</span> <span class="st">&quot;iris-demo&quot;</span>,</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  <span class="at">vector_id =</span> <span class="st">&quot;iris-1&quot;</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  <span class="at">meta_data =</span> <span class="fu">list</span>(</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>    <span class="at">species =</span> <span class="st">&quot;setosa&quot;</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>    <span class="at">sepal_length =</span> <span class="fl">5.1</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>    <span class="at">verified =</span> <span class="cn">TRUE</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>  )</span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>)</span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="fu">print</span>(result<span class="sc">$</span>status_code)  <span class="co"># 200 on success</span></span></code></pre></div>
+</div>
+<div id="get-index-statistics" class="section level3">
+<h3>Get Index Statistics</h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># Get statistics about the index</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>stats <span class="ot">&lt;-</span> <span class="fu">describe_index_stats</span>(<span class="st">&quot;iris-demo&quot;</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="fu">print</span>(stats<span class="sc">$</span>content<span class="sc">$</span>totalVectorCount)</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="fu">print</span>(stats<span class="sc">$</span>content<span class="sc">$</span>dimension)</span></code></pre></div>
+</div>
+<div id="delete-vectors" class="section level3">
+<h3>Delete Vectors</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Delete specific vectors</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">vector_delete</span>(</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  <span class="at">index =</span> <span class="st">&quot;iris-demo&quot;</span>,</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="at">ids =</span> <span class="fu">c</span>(<span class="st">&quot;iris-1&quot;</span>, <span class="st">&quot;iris-2&quot;</span>)</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>)</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a><span class="co"># Delete all vectors in a namespace</span></span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">vector_delete</span>(</span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>  <span class="at">index =</span> <span class="st">&quot;iris-demo&quot;</span>,</span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a>  <span class="at">delete_all =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a>  <span class="at">name_space =</span> <span class="st">&quot;test-namespace&quot;</span></span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+</div>
+<div id="working-with-collections" class="section level2">
+<h2>Working with Collections</h2>
+<p>Collections are static snapshots of an index that can be used to
+create new indexes.</p>
+<div id="create-a-collection" class="section level3">
+<h3>Create a Collection</h3>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co"># Create a collection from an existing index</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">create_collection</span>(</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>  <span class="at">name =</span> <span class="st">&quot;iris-backup&quot;</span>,</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>  <span class="at">source =</span> <span class="st">&quot;iris-demo&quot;</span></span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>)</span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a><span class="fu">print</span>(result<span class="sc">$</span>status_code)</span></code></pre></div>
+</div>
+<div id="list-collections" class="section level3">
+<h3>List Collections</h3>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>collections <span class="ot">&lt;-</span> <span class="fu">list_collections</span>()</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="fu">print</span>(collections<span class="sc">$</span>content)</span></code></pre></div>
+</div>
+<div id="describe-a-collection" class="section level3">
+<h3>Describe a Collection</h3>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>collection_info <span class="ot">&lt;-</span> <span class="fu">describe_collection</span>(<span class="st">&quot;iris-backup&quot;</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="fu">print</span>(collection_info<span class="sc">$</span>content)</span></code></pre></div>
+</div>
+</div>
+<div id="working-with-namespaces" class="section level2">
+<h2>Working with Namespaces</h2>
+<p>Namespaces allow you to partition vectors within an index:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># Upsert to a specific namespace</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">vector_upsert</span>(</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>  <span class="at">index =</span> <span class="st">&quot;iris-demo&quot;</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>  <span class="at">vectors =</span> vectors[<span class="dv">1</span><span class="sc">:</span><span class="dv">50</span>],</span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>  <span class="at">name_space =</span> <span class="st">&quot;training&quot;</span></span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a>)</span>
+<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a></span>
+<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">vector_upsert</span>(</span>
+<span id="cb20-9"><a href="#cb20-9" tabindex="-1"></a>  <span class="at">index =</span> <span class="st">&quot;iris-demo&quot;</span>,</span>
+<span id="cb20-10"><a href="#cb20-10" tabindex="-1"></a>  <span class="at">vectors =</span> vectors[<span class="dv">51</span><span class="sc">:</span><span class="dv">100</span>],</span>
+<span id="cb20-11"><a href="#cb20-11" tabindex="-1"></a>  <span class="at">name_space =</span> <span class="st">&quot;validation&quot;</span></span>
+<span id="cb20-12"><a href="#cb20-12" tabindex="-1"></a>)</span>
+<span id="cb20-13"><a href="#cb20-13" tabindex="-1"></a></span>
+<span id="cb20-14"><a href="#cb20-14" tabindex="-1"></a><span class="co"># Query a specific namespace</span></span>
+<span id="cb20-15"><a href="#cb20-15" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">vector_query</span>(</span>
+<span id="cb20-16"><a href="#cb20-16" tabindex="-1"></a>  <span class="at">index =</span> <span class="st">&quot;iris-demo&quot;</span>,</span>
+<span id="cb20-17"><a href="#cb20-17" tabindex="-1"></a>  <span class="at">vector =</span> query_vector,</span>
+<span id="cb20-18"><a href="#cb20-18" tabindex="-1"></a>  <span class="at">top_k =</span> <span class="dv">5</span>,</span>
+<span id="cb20-19"><a href="#cb20-19" tabindex="-1"></a>  <span class="at">name_space =</span> <span class="st">&quot;training&quot;</span></span>
+<span id="cb20-20"><a href="#cb20-20" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="cleanup" class="section level2">
+<h2>Cleanup</h2>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="co"># Delete the index when done</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a><span class="fu">delete_index</span>(<span class="st">&quot;iris-demo&quot;</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a><span class="co"># Delete the collection</span></span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a><span class="fu">delete_collection</span>(<span class="st">&quot;iris-backup&quot;</span>)</span></code></pre></div>
+</div>
+<div id="error-handling" class="section level2">
+<h2>Error Handling</h2>
+<p>All functions return a consistent response structure:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">describe_index</span>(<span class="st">&quot;non-existent-index&quot;</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="cf">if</span> (result<span class="sc">$</span>status_code <span class="sc">!=</span> <span class="dv">200</span>) {</span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Error:&quot;</span>, result<span class="sc">$</span>status_code, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>  <span class="co"># Access raw response for details</span></span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a>  <span class="fu">print</span>(httr<span class="sc">::</span><span class="fu">content</span>(result<span class="sc">$</span>http))</span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a>  <span class="fu">print</span>(result<span class="sc">$</span>content)</span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a>}</span></code></pre></div>
+</div>
+<div id="tips-and-best-practices" class="section level2">
+<h2>Tips and Best Practices</h2>
+<ol style="list-style-type: decimal">
+<li><p><strong>Batch Operations</strong>: When upserting many vectors,
+use batches of 100 for optimal performance.</p></li>
+<li><p><strong>Dimension Consistency</strong>: Ensure all vectors have
+the same dimension as defined when creating the index.</p></li>
+<li><p><strong>Metadata</strong>: Use metadata for filtering queries.
+Common patterns include categories, timestamps, and source
+identifiers.</p></li>
+<li><p><strong>Namespaces</strong>: Use namespaces to logically separate
+data (e.g., by user, environment, or data source).</p></li>
+<li><p><strong>Index Hosting</strong>: Store the index host from
+<code>describe_index()</code> to avoid repeated API calls.</p></li>
+</ol>
+</div>
+<div id="additional-resources" class="section level2">
+<h2>Additional Resources</h2>
+<ul>
+<li><a href="https://docs.pinecone.io/">Pinecone Documentation</a></li>
+<li><a href="https://docs.pinecone.io/reference/api/introduction">Pinecone API
+Reference</a></li>
+<li><a href="https://www.pinecone.io/learn/vector-embeddings/">Vector
+Embeddings Guide</a></li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
