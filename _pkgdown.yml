@@ -43,6 +43,8 @@ reference:
       - get_assistant_host
       - handle_respons
       - handle_vectors
+      - get_url
+      - extract_vector_controller
 
   - title: Index Operations
     desc: Create, configure, and manage Pinecone indexes
