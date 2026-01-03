@@ -78,8 +78,7 @@ list_indexes()
 
 # Create a serverless index
 create_index(
-
-name = "my-index",
+  name = "my-index",
   dimension = 1536,
   metric = "cosine",
   spec = list(serverless = list(cloud = "aws", region = "us-east-1"))
