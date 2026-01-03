@@ -62,8 +62,8 @@
 #'
 #' @section Inference API:
 #' \itemize{
-#'   \item \code{\link{inference_embed}}: Generate embeddings from text
-#'   \item \code{\link{inference_rerank}}: Rerank documents by relevance
+#'   \item \code{\link{embed}}: Generate embeddings from text
+#'   \item \code{\link{rerank}}: Rerank documents by relevance
 #' }
 #'
 #' @section Records API:
@@ -139,7 +139,7 @@
 #' )
 #'
 #' # Use inference API to embed text
-#' embeddings <- inference_embed(
+#' embeddings <- embed(
 #'   model = "multilingual-e5-large",
 #'   inputs = c("Hello world", "Goodbye world")
 #' )

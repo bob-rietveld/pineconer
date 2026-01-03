@@ -38,7 +38,7 @@ The Inference API allows you to generate embeddings and rerank documents without
 
 ```{r embed}
 # Embed text using a model
-result <- inference_embed(
+result <- embed(
   model = "multilingual-e5-large",
   inputs = c(
     "The quick brown fox jumps over the lazy dog",
@@ -73,14 +73,14 @@ vector_upsert(
 ```{r embed-input-type}
 # Specify input type for better results
 # Use "query" for search queries, "passage" for documents
-result <- inference_embed(
+result <- embed(
   model = "multilingual-e5-large",
   inputs = "What is machine learning?",
   input_type = "query"
 )
 
 # For documents/passages
-result <- inference_embed(
+result <- embed(
   model = "multilingual-e5-large",
   inputs = c(
     "Machine learning is a subset of AI...",
@@ -94,7 +94,7 @@ result <- inference_embed(
 
 ```{r embed-truncate}
 # Handle long inputs
-result <- inference_embed(
+result <- embed(
   model = "multilingual-e5-large",
   inputs = very_long_text,
   truncate = "END"  # Truncate from the end if too long
@@ -113,7 +113,7 @@ documents <- list(
   list(id = "doc3", text = "Paris is known for the Eiffel Tower")
 )
 
-result <- inference_rerank(
+result <- rerank(
   model = "bge-reranker-v2-m3",
   query = "What is the capital of France?",
   documents = documents,
@@ -139,7 +139,7 @@ for (doc in result$content$data) {
 
 ```{r rerank-return}
 # Include original documents in response
-result <- inference_rerank(
+result <- rerank(
   model = "bge-reranker-v2-m3",
   query = "capital of France",
   documents = documents,
@@ -316,7 +316,7 @@ texts <- c(
   "Reinforcement learning for robotics"
 )
 
-embeddings <- inference_embed(
+embeddings <- embed(
   model = "multilingual-e5-large",
   inputs = texts,
   input_type = "passage"
@@ -348,7 +348,7 @@ vectors <- lapply(seq_along(texts), function(i) {
 vector_upsert(index = "ml-articles", vectors = vectors)
 
 # 4. Search with a query
-query_embedding <- inference_embed(
+query_embedding <- embed(
   model = "multilingual-e5-large",
   inputs = "How do neural networks work?",
   input_type = "query"
@@ -373,7 +373,7 @@ docs_for_rerank <- lapply(results$content$matches, function(m) {
   list(id = m$id, text = m$metadata$text)
 })
 
-reranked <- inference_rerank(
+reranked <- rerank(
   model = "bge-reranker-v2-m3",
   query = "How do neural networks work?",
   documents = docs_for_rerank,
@@ -393,7 +393,7 @@ delete_index("ml-articles")
 
 ```{r error-handling}
 # Check for errors in API responses
-result <- inference_embed(
+result <- embed(
   model = "multilingual-e5-large",
   inputs = "Test text"
 )

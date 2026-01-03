@@ -36,6 +36,7 @@ reference:
       - get_api_key
       - get_control_plane_url
       - get_data_plane_url
+      - get_inference_url
       - get_index_host
       - get_assistant_control_url
       - get_assistant_data_url
@@ -48,6 +49,7 @@ reference:
     contents:
       - list_indexes
       - create_index
+      - create_index_for_model
       - describe_index
       - delete_index
       - configure_index
@@ -74,8 +76,8 @@ reference:
   - title: Inference API
     desc: Embed text and rerank documents using Pinecone's inference models
     contents:
-      - inference_embed
-      - inference_rerank
+      - embed
+      - rerank
 
   - title: Records API
     desc: Work with integrated inference indexes (auto-embedding)
