@@ -1,4 +1,138 @@
-url: ~
+url: https://bob-rietveld.github.io/pineconer/
+
 template:
   bootstrap: 5
+  bootswatch: flatly
+  bslib:
+    primary: "#1a73e8"
 
+home:
+  title: pineconer - R Interface to Pinecone Vector Database
+  description: >
+    Comprehensive R interface to the Pinecone Vector Database API for
+    similarity search and RAG workflows.
+
+navbar:
+  structure:
+    left: [intro, reference, articles]
+    right: [search, github]
+  components:
+    articles:
+      text: Articles
+      menu:
+        - text: Getting Started
+          href: articles/getting-started.html
+        - text: "---"
+        - text: "Advanced Topics"
+        - text: Assistants API
+          href: articles/assistants.html
+        - text: Inference API
+          href: articles/inference.html
+
+reference:
+  - title: Connection & Utilities
+    desc: Functions for API connection and response handling
+    contents:
+      - get_api_key
+      - get_control_plane_url
+      - get_data_plane_url
+      - get_inference_url
+      - get_index_host
+      - get_assistant_control_url
+      - get_assistant_data_url
+      - get_assistant_host
+      - handle_respons
+      - handle_vectors
+      - get_url
+      - extract_vector_controller
+
+  - title: Index Operations
+    desc: Create, configure, and manage Pinecone indexes
+    contents:
+      - list_indexes
+      - create_index
+      - create_index_for_model
+      - describe_index
+      - delete_index
+      - configure_index
+
+  - title: Collection Operations
+    desc: Manage index snapshots as collections
+    contents:
+      - list_collections
+      - create_collection
+      - describe_collection
+      - delete_collection
+
+  - title: Vector Operations
+    desc: Query, upsert, fetch, update, and delete vectors
+    contents:
+      - describe_index_stats
+      - vector_query
+      - vector_upsert
+      - vector_fetch
+      - vector_update
+      - vector_delete
+      - vector_list
+
+  - title: Inference API
+    desc: Embed text and rerank documents using Pinecone's inference models
+    contents:
+      - embed
+      - rerank
+
+  - title: Records API
+    desc: Work with integrated inference indexes (auto-embedding)
+    contents:
+      - records_upsert
+      - records_search
+
+  - title: Bulk Operations
+    desc: Import large datasets efficiently
+    contents:
+      - start_import
+      - describe_import
+      - list_imports
+      - cancel_import
+
+  - title: Assistant Operations
+    desc: Create and manage Pinecone Assistants for RAG
+    contents:
+      - list_assistants
+      - create_assistant
+      - describe_assistant
+      - update_assistant
+      - delete_assistant
+
+  - title: Assistant Files
+    desc: Upload and manage files for Assistants
+    contents:
+      - assistant_list_files
+      - assistant_upload_file
+      - assistant_describe_file
+      - assistant_delete_file
+
+  - title: Assistant Chat
+    desc: Chat with Assistants and retrieve context
+    contents:
+      - assistant_chat
+      - assistant_chat_completions
+      - assistant_context
+      - assistant_evaluate
+
+articles:
+  - title: Getting Started
+    navbar: ~
+    contents:
+      - getting-started
+
+  - title: Advanced Topics
+    navbar: ~
+    contents:
+      - assistants
+      - inference
+
+footer:
+  structure:
+    left: developed_by
+    right: built_with

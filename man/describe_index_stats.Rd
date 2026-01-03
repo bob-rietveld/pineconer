@@ -2,13 +2,23 @@
 % Please edit documentation in R/03_vector_operations.R
 \name{describe_index_stats}
 \alias{describe_index_stats}
-\title{Descrive Index stats}
+\title{Describe Index Stats}
 \usage{
-describe_index_stats(index_name = NA, project_name = NA)
+describe_index_stats(index_name, filter = NULL)
 }
 \arguments{
-\item{project_name}{}
+\item{index_name}{Name of the index}
+
+\item{filter}{Optional metadata filter (list)}
+}
+\value{
+List with http response, content (index statistics), and status_code
 }
 \description{
-Descrive Index stats
+Returns statistics about an index, such as vector count and index fullness.
+}
+\examples{
+\dontrun{
+describe_index_stats("my-index")
+}
 }

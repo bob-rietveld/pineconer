@@ -7,17 +7,53 @@
 create_index(
   name,
   dimension,
-  metric,
-  pods,
-  replicas,
-  pod_type,
-  metadata_config,
-  source_collection
+  metric = "cosine",
+  spec = NULL,
+  deletion_protection = "disabled"
 )
 }
 \arguments{
-\item{source_collection}{}
+\item{name}{Name of the index (must be unique within project)}
+
+\item{dimension}{Dimension of vectors to be stored}
+
+\item{metric}{Distance metric: "cosine", "euclidean", or "dotproduct" (default: "cosine")}
+
+\item{spec}{Index specification - either serverless or pod configuration (see details)}
+
+\item{deletion_protection}{Whether to enable deletion protection ("enabled" or "disabled")}
+}
+\value{
+List with http response, content (index details including host), and status_code
 }
 \description{
-Create Index
+Creates a new Pinecone index. Supports both serverless and pod-based indexes.
+}
+\details{
+The `spec` parameter should be a list containing either:
+
+For serverless indexes:
+\code{list(serverless = list(cloud = "aws", region = "us-east-1"))}
+
+For pod-based indexes:
+\code{list(pod = list(environment = "us-east-1-aws", pod_type = "p1.x1", pods = 1))}
+}
+\examples{
+\dontrun{
+# Create a serverless index
+create_index(
+  name = "my-index",
+  dimension = 1536,
+  metric = "cosine",
+  spec = list(serverless = list(cloud = "aws", region = "us-east-1"))
+)
+
+# Create a pod-based index
+create_index(
+  name = "my-pod-index",
+  dimension = 1536,
+  metric = "cosine",
+  spec = list(pod = list(environment = "us-east-1-aws", pod_type = "p1.x1", pods = 1))
+)
+}
 }

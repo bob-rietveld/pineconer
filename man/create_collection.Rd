@@ -4,18 +4,26 @@
 \alias{create_collection}
 \title{Create Collection}
 \usage{
-create_collection(name, source_collection)
+create_collection(name, source)
 }
 \arguments{
-\item{source_collection}{}
+\item{name}{Name for the new collection}
+
+\item{source}{Name of the source index to create the collection from}
 }
 \value{
-list with api call and content.
-201 The collection has been successfully created.
-400 Bad request. Request exceeds quota or collection name is invalid.
-409 A collection with the name provided already exists.
-500 Internal error. Can be caused by invalid parameters.
+List with http response, content, and status_code
+- 201: The collection has been successfully created
+- 400: Bad request (quota exceeded or invalid name)
+- 409: A collection with this name already exists
+- 500: Internal error
 }
 \description{
-Create Collection
+Creates a collection from an existing index. Collections are static copies
+of an index that can be used to create new indexes.
+}
+\examples{
+\dontrun{
+create_collection("my-collection", source = "my-index")
+}
 }

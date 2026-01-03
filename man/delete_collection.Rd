@@ -2,18 +2,24 @@
 % Please edit documentation in R/02_collection_operations.R
 \name{delete_collection}
 \alias{delete_collection}
-\title{Delete collection}
+\title{Delete Collection}
 \usage{
-delete_collection(collection_name, controller = "controller")
+delete_collection(collection_name)
 }
 \arguments{
-\item{collection_name}{}
+\item{collection_name}{Name of the collection to delete}
 }
 \value{
-202 The index has been successfully deleted.
-404 Collection not found.
-500 Internal error. Can be caused by invalid parameters.
+List with http response, content, and status_code
+- 202: The collection has been successfully deleted
+- 404: Collection not found
+- 500: Internal error
 }
 \description{
-Delete collection
+Deletes an existing collection.
+}
+\examples{
+\dontrun{
+delete_collection("my-collection")
+}
 }

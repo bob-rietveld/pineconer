@@ -2,13 +2,25 @@
 % Please edit documentation in R/0_connect.R
 \name{handle_vectors}
 \alias{handle_vectors}
-\title{Tidy vectors}
+\title{Tidy Vector Data}
 \usage{
 handle_vectors(input)
 }
 \arguments{
-\item{input}{}
+\item{input}{A list containing a \code{vectors} element from a Pinecone
+fetch or query response.}
+}
+\value{
+A tibble with columns for vector IDs, values, and any metadata fields.
+  Metadata columns are prefixed with their field names.
 }
 \description{
-Tidy vectors
+Transforms raw vector data from Pinecone API responses into a tidy tibble format.
 }
+\examples{
+\dontrun{
+result <- vector_fetch("my-index", ids = c("vec1", "vec2"), tidy = FALSE)
+tidy_vectors <- handle_vectors(result$content)
+}
+}
+\keyword{internal}

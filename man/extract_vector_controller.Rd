@@ -2,13 +2,18 @@
 % Please edit documentation in R/0_connect.R
 \name{extract_vector_controller}
 \alias{extract_vector_controller}
-\title{Get controller}
+\title{Get controller (DEPRECATED)}
 \usage{
 extract_vector_controller(index, vector = "svc")
 }
 \arguments{
-\item{vector}{}
+\item{index}{Index description object}
+
+\item{vector}{Ignored}
+}
+\value{
+Host string
 }
 \description{
-Get controller
+This function is deprecated. Use `get_index_host()` instead.
 }

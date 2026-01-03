@@ -2,13 +2,28 @@
 % Please edit documentation in R/0_connect.R
 \name{get_url}
 \alias{get_url}
-\title{Get Pinecone index url}
+\title{Get Pinecone index url (DEPRECATED)}
 \usage{
 get_url(controller, set_path = NA)
 }
 \arguments{
-\item{set_path}{}
+\item{controller}{Controller name (ignored in new API)}
+
+\item{set_path}{API path}
+}
+\value{
+Full URL string
 }
 \description{
-Get Pinecone index url
+This function is deprecated. Use `get_control_plane_url()` for control plane
+operations or `get_data_plane_url()` for vector operations.
+}
+\examples{
+\dontrun{
+# Old usage (deprecated):
+get_url("controller", "databases")
+
+# New usage:
+get_control_plane_url("indexes")
+}
 }

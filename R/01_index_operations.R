@@ -1,16 +1,21 @@
 
-#' List Index
+#' List Indexes
 #'
-#' @return
+#' Lists all indexes in your Pinecone project.
+#'
+#' @return List with http response, content (list of indexes), and status_code
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' list_indexes()
+#' }
 list_indexes <- function(){
 
-  # get URL
-  pinecone_url <- get_url("controller","databases")
+  # get URL (new global API endpoint)
+  pinecone_url <- get_control_plane_url("indexes")
 
-  # get toke
+  # get token
   pinecone_token <- get_api_key()
 
   # get response
@@ -27,36 +32,75 @@ list_indexes <- function(){
 
 #' Create Index
 #'
-#' @param name
-#' @param dimension
-#' @param metric
-#' @param pods
-#' @param replicas
-#' @param pod_type
-#' @param metadata_config
-#' @param source_collection
+#' Creates a new Pinecone index. Supports both serverless and pod-based indexes.
 #'
-#' @return
+#' @param name Name of the index (must be unique within project)
+#' @param dimension Dimension of vectors to be stored
+#' @param metric Distance metric: "cosine", "euclidean", or "dotproduct" (default: "cosine")
+#' @param spec Index specification - either serverless or pod configuration (see details)
+#' @param deletion_protection Whether to enable deletion protection ("enabled" or "disabled")
+#'
+#' @details
+#' The `spec` parameter should be a list containing either:
+#'
+#' For serverless indexes:
+#' \code{list(serverless = list(cloud = "aws", region = "us-east-1"))}
+#'
+#' For pod-based indexes:
+#' \code{list(pod = list(environment = "us-east-1-aws", pod_type = "p1.x1", pods = 1))}
+#'
+#' @return List with http response, content (index details including host), and status_code
 #' @export
 #'
 #' @examples
-create_index <- function( name, dimension, metric, pods, replicas, pod_type, metadata_config, source_collection){
+#' \dontrun{
+#' # Create a serverless index
+#' create_index(
+#'   name = "my-index",
+#'   dimension = 1536,
+#'   metric = "cosine",
+#'   spec = list(serverless = list(cloud = "aws", region = "us-east-1"))
+#' )
+#'
+#' # Create a pod-based index
+#' create_index(
+#'   name = "my-pod-index",
+#'   dimension = 1536,
+#'   metric = "cosine",
+#'   spec = list(pod = list(environment = "us-east-1-aws", pod_type = "p1.x1", pods = 1))
+#' )
+#' }
+create_index <- function(name, dimension, metric = "cosine", spec = NULL, deletion_protection = "disabled"){
 
-  # get URL
-  pinecone_url <- get_url("controller", "databases")
+  # get URL (new global API endpoint)
+  pinecone_url <- get_control_plane_url("indexes")
 
-  # get toke
+  # get token
   pinecone_token <- get_api_key()
 
-  # body
-  body <- list( name = name,
-                dimension = dimension)
+  # Build request body according to new API spec
+  body <- list(
+    name = name,
+    dimension = dimension,
+    metric = metric
+  )
+
+  # Add spec if provided
+  if (!is.null(spec)) {
+    body$spec <- spec
+  }
+
+  # Add deletion protection if specified
+  if (!is.null(deletion_protection)) {
+    body$deletion_protection <- deletion_protection
+  }
 
   # get response
   response <- httr::POST( pinecone_url,
                           body = body,
                           encode = "json",
                           httr::accept_json(),
+                          httr::content_type_json(),
                           httr::add_headers( `Api-Key`= pinecone_token )
   )
 
@@ -69,59 +113,76 @@ create_index <- function( name, dimension, metric, pods, replicas, pod_type, met
 
 #' Describe Index
 #'
-#' @param controller
-#' @param index_name
-#' @param return_controller
+#' Returns configuration information and deployment status of an index.
 #'
-#' @return
-#' 200 Configuration information and deployment status of the index
-#' 404 Index not found
-#' 500 Internal error. Can be caused by invalid parameters.
+#' @param index_name Name of the index to describe
+#'
+#' @return List with http response, content (index configuration including host), and status_code
+#'
+#' The content includes:
+#' - name: Index name
+#' - dimension: Vector dimension
+#' - metric: Distance metric
+#' - host: Data plane host URL for vector operations
+#' - status: Index status (ready, etc.)
+#' - spec: Index specification (serverless or pod config)
+#'
 #' @export
-describe_index <- function(  index_name , controller = "controller"  ){
+#'
+#' @examples
+#' \dontrun{
+#' describe_index("my-index")
+#' }
+describe_index <- function(index_name){
 
-  # get toke
+  # get token
   pinecone_token <- get_api_key()
 
-  # set path
-  path <- glue::glue("databases/{index_name}")
+  # set path (new API uses "indexes" not "databases")
+  path <- glue::glue("indexes/{index_name}")
 
-  #get url
-  pinecone_url <- get_url(controller = controller, set_path = path)
+  # get url (new global API)
+  pinecone_url <- get_control_plane_url(set_path = path)
 
   # get response
   response <- httr::GET( pinecone_url,
+                         httr::accept_json(),
                          httr::add_headers( `Api-Key`= pinecone_token ) )
 
   # parse result
   result <- handle_respons(response)
 
-
   return(result)
-
 
 }
 
-#' Delete index
+#' Delete Index
 #'
-#' @param index_name
-#' @param controller
+#' Deletes an existing index.
 #'
-#' @return
-#'202 The index has been successfully deleted.
-#'404 Index not found.
-#'500 Internal error. Can be caused by invalid parameters.
+#' @param index_name Name of the index to delete
+#'
+#' @return List with http response, content, and status_code
+#' - 202: The index has been successfully deleted
+#' - 404: Index not found
+#' - 500: Internal error
+#'
 #' @export
-delete_index <- function(  index_name , controller = "controller"  ){
+#'
+#' @examples
+#' \dontrun{
+#' delete_index("my-index")
+#' }
+delete_index <- function(index_name){
 
-  # get toke
+  # get token
   pinecone_token <- get_api_key()
 
-  # set path
-  path <- glue::glue("databases/{index_name}")
+  # set path (new API uses "indexes" not "databases")
+  path <- glue::glue("indexes/{index_name}")
 
-  #get url
-  pinecone_url <- get_url(controller = controller, set_path = path)
+  # get url (new global API)
+  pinecone_url <- get_control_plane_url(set_path = path)
 
   # get response
   response <- httr::DELETE( pinecone_url,
@@ -130,61 +191,194 @@ delete_index <- function(  index_name , controller = "controller"  ){
   # parse result
   result <- handle_respons(response)
 
-
   return(result)
-
 
 }
 
-#' Configure index in terms of replicas and pod size
+#' Configure Index
 #'
-#' @param index_name
-#' @param replicas integer
-#' The desired number of replicas for the index.
-#' @param pod_type
-#' The new pod type for the index. One of s1, p1, or p2 appended with . and one of x1, x2, x4, or x8.
-#' @param controller
+#' Updates index configuration. For pod-based indexes, can change replicas and pod type.
+#' For all indexes, can update deletion protection.
 #'
-#' @return
+#' @param index_name Name of the index to configure
+#' @param replicas Integer. The desired number of replicas for the index (pod-based only)
+#' @param pod_type The new pod type. One of s1, p1, or p2 appended with . and one of x1, x2, x4, or x8 (pod-based only)
+#' @param deletion_protection Whether to enable deletion protection ("enabled" or "disabled")
+#'
+#' @return List with http response, content, and status_code
 #' @export
 #'
 #' @examples
-configure_index <- function(  index_name , replicas, pod_type, controller = "controller"  ){
+#' \dontrun{
+#' # Update pod configuration
+#' configure_index("my-index", replicas = 2, pod_type = "p1.x2")
+#'
+#' # Enable deletion protection
+#' configure_index("my-index", deletion_protection = "enabled")
+#' }
+configure_index <- function(index_name, replicas = NULL, pod_type = NULL, deletion_protection = NULL){
 
   # assertions
-  ## check if replicas is int
-  assertthat::assert_that(is.numeric(replicas), msg = "Replicas must be integers")
+  if (!is.null(replicas)) {
+    assertthat::assert_that(is.numeric(replicas), msg = "Replicas must be numeric")
+  }
 
-  ## check is pod_type is in one of the allowed values
-  # create podlist = expand.grid(c("s1","p1","p2"),c("x1","x2","x4","x8")) |> tidyr::unite("z",c("Var1","Var2"), sep =".") |> dplyr::pull(z)
-  pod_list <- c("s1.x1","p1.x1","p2.x1","s1.x2","p1.x2","p2.x2","s1.x4","p1.x4","p2.x4","s1.x8","p1.x8","p2.x8")
-  error_msg <- glue::glue("Pod type must be one of predefined by Pinecone. Please see the docs at https://docs.pinecone.io/reference/configure_index")
-  assertthat::assert_that(pod_type %in% pod_list, msg = error_msg )
+  if (!is.null(pod_type)) {
+    pod_list <- c("s1.x1","p1.x1","p2.x1","s1.x2","p1.x2","p2.x2","s1.x4","p1.x4","p2.x4","s1.x8","p1.x8","p2.x8")
+    error_msg <- glue::glue("Pod type must be one of: {paste(pod_list, collapse = ', ')}")
+    assertthat::assert_that(pod_type %in% pod_list, msg = error_msg)
+  }
 
   # get token
   pinecone_token <- get_api_key()
 
-  # set path
-  path <- glue::glue("databases/{index_name}")
+  # set path (new API uses "indexes" not "databases")
+  path <- glue::glue("indexes/{index_name}")
 
-  #get url
-  pinecone_url <- get_url(controller = controller, set_path = path)
+  # get url (new global API)
+  pinecone_url <- get_control_plane_url(set_path = path)
 
-  # body
-  body <- list( replicas = replicas,
-                pod_type = pod_type)
+  # Build body according to new API spec
+  body <- list()
+
+  # Pod-specific configuration
+  if (!is.null(replicas) || !is.null(pod_type)) {
+    spec <- list(pod = list())
+    if (!is.null(replicas)) spec$pod$replicas <- replicas
+    if (!is.null(pod_type)) spec$pod$pod_type <- pod_type
+    body$spec <- spec
+  }
+
+  # Deletion protection (applies to all index types)
+  if (!is.null(deletion_protection)) {
+    body$deletion_protection <- deletion_protection
+  }
 
   # get response
   response <- httr::PATCH( pinecone_url,
                            body = body,
+                           encode = "json",
                            httr::accept_json(),
+                           httr::content_type_json(),
                            httr::add_headers( `Api-Key`= pinecone_token ) )
 
   # parse result
   result <- handle_respons(response)
 
-
   return(result)
 
+}
+
+
+#' Create Index for Model
+#'
+#' Creates a new Pinecone index with an integrated embedding model. This enables
+#' automatic embedding of text during upsert and query operations using
+#' Pinecone's hosted models.
+#'
+#' @param name Name of the index (must be unique within project)
+#' @param cloud Cloud provider: "aws", "gcp", or "azure"
+#' @param region Cloud region (e.g., "us-east-1" for AWS)
+#' @param embed A list specifying the embedding model configuration:
+#'   - model: The embedding model name (e.g., "multilingual-e5-large")
+#'   - field_map: A named list mapping source field to text field (e.g., list(text = "chunk_text"))
+#'   - metric: Optional distance metric ("cosine", "euclidean", "dotproduct")
+#'   - read_parameters: Optional list with input_type for queries
+#'   - write_parameters: Optional list with input_type for documents
+#' @param deletion_protection Whether to enable deletion protection ("enabled" or "disabled")
+#' @param tags Optional named list of tags for the index
+#'
+#' @return List with http response, content (index details including host), and status_code
+#'
+#' @details
+#' Indexes created with integrated embedding models support:
+#' - `records_upsert()`: Upsert text that gets automatically embedded
+
+#' - `records_search()`: Search using text queries with optional reranking
+#'
+#' The embedding model determines the vector dimension automatically.
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Create an index with multilingual-e5-large model
+#' create_index_for_model(
+#'   name = "my-semantic-index",
+#'   cloud = "aws",
+#'   region = "us-east-1",
+#'   embed = list(
+#'     model = "multilingual-e5-large",
+#'     field_map = list(text = "chunk_text")
+#'   )
+#' )
+#'
+#' # With custom metric and input types
+#' create_index_for_model(
+#'   name = "my-index",
+#'   cloud = "aws",
+#'   region = "us-east-1",
+#'   embed = list(
+#'     model = "multilingual-e5-large",
+#'     field_map = list(text = "content"),
+#'     metric = "dotproduct",
+#'     read_parameters = list(input_type = "query"),
+#'     write_parameters = list(input_type = "passage")
+#'   )
+#' )
+#' }
+create_index_for_model <- function(name, cloud, region, embed, deletion_protection = "disabled", tags = NULL) {
+
+  # assertions
+  assertthat::assert_that(!missing(name), msg = "Please provide an index name.")
+  assertthat::assert_that(!missing(cloud), msg = "Please provide a cloud provider.")
+  assertthat::assert_that(!missing(region), msg = "Please provide a region.")
+  assertthat::assert_that(!missing(embed), msg = "Please provide embed configuration.")
+  assertthat::assert_that(
+    is.list(embed) && !is.null(embed$model) && !is.null(embed$field_map),
+    msg = "embed must be a list with 'model' and 'field_map' fields."
+  )
+  assertthat::assert_that(
+    cloud %in% c("aws", "gcp", "azure"),
+    msg = "cloud must be one of: 'aws', 'gcp', 'azure'."
+  )
+
+  # get URL
+  pinecone_url <- get_control_plane_url("indexes/create-for-model")
+
+  # get token
+  pinecone_token <- get_api_key()
+
+  # Build request body
+  body <- list(
+    name = name,
+    cloud = cloud,
+    region = region,
+    embed = embed
+  )
+
+  # Add deletion protection
+  if (!is.null(deletion_protection)) {
+    body$deletion_protection <- deletion_protection
+  }
+
+  # Add tags if provided
+  if (!is.null(tags)) {
+    body$tags <- tags
+  }
+
+  # get response
+  response <- httr::POST(
+    pinecone_url,
+    body = jsonlite::toJSON(body, auto_unbox = TRUE),
+    encode = "raw",
+    httr::accept_json(),
+    httr::content_type_json(),
+    httr::add_headers(`Api-Key` = pinecone_token)
+  )
+
+  result <- handle_respons(response)
+
+  return(result)
 
 }

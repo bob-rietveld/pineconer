@@ -2,13 +2,38 @@
 % Please edit documentation in R/03_vector_operations.R
 \name{vector_upsert}
 \alias{vector_upsert}
-\title{Upsert}
+\title{Upsert Vectors}
 \usage{
-vector_upsert(index, embeddings, vector_id, meta_data = "", name_space = "")
+vector_upsert(index, vectors, name_space = "")
 }
 \arguments{
-\item{name_space}{}
+\item{index}{Name of the index}
+
+\item{vectors}{List of vectors to upsert. Each vector should be a list with:
+- id: Vector ID (character)
+- values: Vector values (numeric vector)
+- metadata: Optional metadata (list)}
+
+\item{name_space}{Namespace to upsert into (default: "")}
+}
+\value{
+List with http response, content (upserted count), and status_code
 }
 \description{
-Upsert
+Inserts or updates vectors in an index. If a vector with the same ID exists,
+it will be overwritten.
+}
+\examples{
+\dontrun{
+# Upsert a single vector
+vector_upsert("my-index", vectors = list(
+  list(id = "vec1", values = rep(0.1, 1536), metadata = list(category = "A"))
+))
+
+# Upsert multiple vectors
+vector_upsert("my-index", vectors = list(
+  list(id = "vec1", values = rep(0.1, 1536)),
+  list(id = "vec2", values = rep(0.2, 1536))
+))
+}
 }

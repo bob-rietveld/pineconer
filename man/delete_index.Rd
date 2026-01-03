@@ -2,18 +2,24 @@
 % Please edit documentation in R/01_index_operations.R
 \name{delete_index}
 \alias{delete_index}
-\title{Delete index}
+\title{Delete Index}
 \usage{
-delete_index(index_name, controller = "controller")
+delete_index(index_name)
 }
 \arguments{
-\item{controller}{}
+\item{index_name}{Name of the index to delete}
 }
 \value{
-202 The index has been successfully deleted.
-404 Index not found.
-500 Internal error. Can be caused by invalid parameters.
+List with http response, content, and status_code
+- 202: The index has been successfully deleted
+- 404: Index not found
+- 500: Internal error
 }
 \description{
-Delete index
+Deletes an existing index.
+}
+\examples{
+\dontrun{
+delete_index("my-index")
+}
 }

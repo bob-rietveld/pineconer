@@ -2,10 +2,18 @@
 % Please edit documentation in R/01_index_operations.R
 \name{list_indexes}
 \alias{list_indexes}
-\title{List Index}
+\title{List Indexes}
 \usage{
 list_indexes()
 }
+\value{
+List with http response, content (list of indexes), and status_code
+}
 \description{
-List Index
+Lists all indexes in your Pinecone project.
+}
+\examples{
+\dontrun{
+list_indexes()
+}
 }

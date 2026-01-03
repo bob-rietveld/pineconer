@@ -1,32 +1,54 @@
-#' Descrive Index stats
+#' Describe Index Stats
 #'
-#' @param index_name
-#' @param project_name
+#' Returns statistics about an index, such as vector count and index fullness.
 #'
-#' @return
+#' @param index_name Name of the index
+#' @param filter Optional metadata filter (list)
+#'
+#' @return List with http response, content (index statistics), and status_code
 #' @export
-describe_index_stats <- function(  index_name = NA, project_name = NA){
-
-  # to do implement filters
+#'
+#' @examples
+#' \dontrun{
+#' describe_index_stats("my-index")
+#' }
+describe_index_stats <- function(index_name, filter = NULL){
 
   # assertions
-  assertthat::assert_that(assertthat::noNA(index_name), msg = "Please provide and index name.")
-  assertthat::assert_that(assertthat::noNA(project_name), msg = "Please provide and project_name. You can find it using describe_index in the status / host response.")
+  assertthat::assert_that(!is.na(index_name), msg = "Please provide an index name.")
 
-  # get toke
+  # get token
   pinecone_token <- get_api_key()
 
-  # controller
-  controller = glue::glue("{index_name}-{project_name}")
+  # Get index host from describe_index
+  index_info <- describe_index(index_name)
+  host <- get_index_host(index_info)
 
-  # get url
-  pinecone_url <- get_url(controller = controller,
-                          set_path   = "describe_index_stats")
+  # get url using data plane
+  pinecone_url <- get_data_plane_url(host = host, set_path = "describe_index_stats")
 
-  # get response
-  response <- httr::GET( pinecone_url,
-                          httr::add_headers( `Api-Key`= pinecone_token )
-  )
+  # Build body if filter provided
+  body <- NULL
+  if (!is.null(filter)) {
+    body <- list(filter = filter)
+  }
+
+  # get response (POST for data plane)
+  if (is.null(body)) {
+    response <- httr::POST( pinecone_url,
+                            httr::accept_json(),
+                            httr::content_type_json(),
+                            httr::add_headers( `Api-Key`= pinecone_token )
+    )
+  } else {
+    response <- httr::POST( pinecone_url,
+                            body = body,
+                            encode = "json",
+                            httr::accept_json(),
+                            httr::content_type_json(),
+                            httr::add_headers( `Api-Key`= pinecone_token )
+    )
+  }
 
   result <- handle_respons(response)
 
@@ -36,18 +58,24 @@ describe_index_stats <- function(  index_name = NA, project_name = NA){
 
 #' Query Vectors
 #'
-#' @param index
-#' @param vector
-#' @param top_k
-#' @param filter
-#' @param name_space
-#' @param include_metadata
-#' @param include_values
-#' @param tidy
+#' Searches an index using a query vector. Returns the most similar vectors.
 #'
-#' @return
+#' @param index Name of the index to query
+#' @param vector Query vector (numeric vector)
+#' @param top_k Number of results to return (default: 5)
+#' @param filter Metadata filter (list)
+#' @param name_space Namespace to query (default: "")
+#' @param include_metadata Whether to include metadata in results (default: TRUE)
+#' @param include_values Whether to include vector values in results (default: FALSE)
+#' @param tidy Whether to return tidy tibble format (default: TRUE)
+#'
+#' @return List with http response, content (matches), and status_code
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#' vector_query("my-index", vector = rep(0.1, 1536), top_k = 10)
+#' }
 vector_query <- function( index,
                           vector,
                           top_k = 5,
@@ -57,96 +85,110 @@ vector_query <- function( index,
                           include_values = FALSE ,
                           tidy = TRUE ){
 
-  # get controller
-  temp_index <- describe_index( index_name = index )
-  controller <- extract_vector_controller( temp_index )
+  # get index host
+  temp_index <- describe_index(index_name = index)
+  host <- get_index_host(temp_index)
 
-  # get URL
-  pinecone_url <- get_url(controller,"query")
+  # get URL using data plane
+  pinecone_url <- get_data_plane_url(host, "query")
 
-  print(pinecone_url)
-
-  # get toke
+  # get token
   pinecone_token <- get_api_key()
 
   # body
   body <- list(
     vector          = vector,
     topK            = top_k,
-    filter          = filter,
     includeMetadata = include_metadata,
     includeValues   = include_values,
     namespace       = name_space
   )
 
-
+  # Only add filter if not empty
+  if (length(filter) > 0) {
+    body$filter <- filter
+  }
 
   # get response
   response <- httr::POST( pinecone_url,
                           body = body,
                           encode = "json",
+                          httr::accept_json(),
+                          httr::content_type_json(),
                           httr::add_headers( `Api-Key`= pinecone_token )
   )
 
   result <- handle_respons(response)
 
-  if(tidy){
-
-    result$content <-  tibble::tibble(data = result$content$matches) %>%
-                       tidyr::unnest_wider(data) %>%
-                       tidyr::unnest_wider(metadata)
+  if(tidy && result$status_code == 200 && !is.null(result$content$matches)){
+    tidy_result <- tibble::tibble(data = result$content$matches)
+    tidy_result <- tidyr::unnest_wider(tidy_result, "data")
+    tidy_result <- tidyr::unnest_wider(tidy_result, "metadata", names_sep = "_")
+    result$content <- tidy_result
   }
 
   return(result)
 
 }
 
-#' Delete vector
+#' Delete Vectors
 #'
-#' @param index
-#' @param ids
-#' @param delete_all
-#' @param name_space
-#' @param filter
+#' Deletes vectors from an index by ID, filter, or all vectors.
 #'
-#' @return
+#' @param index Name of the index
+#' @param ids Vector IDs to delete (character vector)
+#' @param delete_all Whether to delete all vectors (default: FALSE)
+#' @param name_space Namespace to delete from (default: "")
+#' @param filter Metadata filter for selective deletion (list)
+#'
+#' @return List with http response, content, and status_code
 #' @export
 #'
 #' @examples
-vector_delete <- function( index, ids = NULL, delete_all = FALSE, name_space = "", filter = NULL){
+#' \dontrun{
+#' # Delete specific vectors
+#' vector_delete("my-index", ids = c("vec1", "vec2"))
+#'
+#' # Delete all vectors in namespace
+#' vector_delete("my-index", delete_all = TRUE, name_space = "my-namespace")
+#' }
+vector_delete <- function(index, ids = NULL, delete_all = FALSE, name_space = "", filter = NULL){
 
-  # get controller
-  temp_index <- describe_index( index_name = index )
-  controller <- extract_vector_controller( temp_index )
+  # get index host
+  temp_index <- describe_index(index_name = index)
+  host <- get_index_host(temp_index)
 
-  # get URL
-  pinecone_url <- get_url(controller,"vectors/delete")
+  # get URL using data plane
+  pinecone_url <- get_data_plane_url(host, "vectors/delete")
 
-  print(pinecone_url)
-
-  # get toke
+  # get token
   pinecone_token <- get_api_key()
 
   # body
-  body <- list( ids       = ids,
-                deleteAll = delete_all,
-                namespace = name_space,
-                filter    = filter
+  body <- list(
+    deleteAll = delete_all,
+    namespace = name_space
   )
 
-  # remove values if undefined
-  if(is.null(filter)){
+  # Add ids if provided
+  if (!is.null(ids)) {
+    body$ids <- ids
+  }
 
-    body <-   body[names(body) != "filter"]
+  # Add filter if provided
+  if (!is.null(filter)) {
+    body$filter <- filter
   }
 
   # make body
-  body <- jsonlite::toJSON( body, auto_unbox = TRUE)
+  body <- jsonlite::toJSON(body, auto_unbox = TRUE)
 
   # get response
   response <- httr::POST( pinecone_url,
                           body = body,
                           encode = "raw",
+                          httr::accept_json(),
+                          httr::content_type_json(),
                           httr::add_headers( `Api-Key`= pinecone_token )
   )
 
@@ -156,45 +198,54 @@ vector_delete <- function( index, ids = NULL, delete_all = FALSE, name_space = "
 
 }
 
-#' Fetch
+#' Fetch Vectors
 #'
-#' @param index
-#' @param ids
+#' Retrieves vectors by ID from an index.
 #'
-#' @return
+#' @param index Name of the index
+#' @param ids Vector IDs to fetch (character vector)
+#' @param namespace Namespace to fetch from (default: "")
+#' @param tidy Whether to return tidy tibble format (default: TRUE)
+#'
+#' @return List with http response, content (vectors), and status_code
 #' @export
 #'
 #' @examples
-vector_fetch <- function( index, ids , namespace , tidy = TRUE){
+#' \dontrun{
+#' vector_fetch("my-index", ids = c("vec1", "vec2"), namespace = "")
+#' }
+vector_fetch <- function(index, ids, namespace = "", tidy = TRUE){
 
-  # get controller
-  temp_index <- describe_index( index_name = index )
-  controller <- extract_vector_controller( temp_index )
+  # get index host
+  temp_index <- describe_index(index_name = index)
+  host <- get_index_host(temp_index)
 
-  # get URL
-  pinecone_url <- get_url(controller,"vectors/fetch")
+  # get URL using data plane
+  pinecone_url <- get_data_plane_url(host, "vectors/fetch")
 
-  print(pinecone_url)
-
-  # get toke
+  # get token
   pinecone_token <- get_api_key()
 
-  # prep query params
-  list_temp <- list()
-  list_temp <- purrr::lmap( ids, ~list_modify(list_temp, ids = .x))
-  query_id <- purrr::list_modify(list_temp, namespace = namespace)
+  # prep query params (multiple ids need to be passed as repeated params)
+  query_params <- list()
+  for (id in ids) {
+    query_params <- c(query_params, list(ids = id))
+  }
+  if (namespace != "") {
+    query_params$namespace <- namespace
+  }
 
   # get response
   response <- httr::GET( pinecone_url,
-                         query = query_id,
+                         query = query_params,
+                         httr::accept_json(),
                          httr::add_headers( `Api-Key`= pinecone_token )
   )
 
   result <- handle_respons(response)
 
   # tidy content
-  if(tidy && result$status_code == 200){
-
+  if(tidy && result$status_code == 200 && !is.null(result$content$vectors)){
     result$content <- handle_vectors(result$content)
   }
 
@@ -202,52 +253,64 @@ vector_fetch <- function( index, ids , namespace , tidy = TRUE){
 
 }
 
-#' Update Vectors
+#' Update Vector
 #'
-#' @param index
-#' @param embeddings
-#' @param vector_id
-#' @param meta_data
-#' @param name_space
+#' Updates a vector's values or metadata.
 #'
-#' @return
+#' @param index Name of the index
+#' @param vector_id ID of the vector to update
+#' @param values New vector values (numeric vector, optional)
+#' @param meta_data New metadata (list, optional)
+#' @param name_space Namespace of the vector (default: "")
+#'
+#' @return List with http response, content, and status_code
 #' @export
 #'
 #' @examples
-vector_update  <- function( index, embeddings = NULL, vector_id,  meta_data = "" , name_space = ""){
+#' \dontrun{
+#' # Update metadata only
+#' vector_update("my-index", vector_id = "vec1", meta_data = list(category = "new"))
+#'
+#' # Update values and metadata
+#' vector_update("my-index", vector_id = "vec1", values = rep(0.1, 1536),
+#'               meta_data = list(category = "new"))
+#' }
+vector_update <- function(index, vector_id, values = NULL, meta_data = NULL, name_space = ""){
 
-  # get controller
-  temp_index <- describe_index( index_name = index )
-  controller <- extract_vector_controller( temp_index )
+  # get index host
+  temp_index <- describe_index(index_name = index)
+  host <- get_index_host(temp_index)
 
-  # get URL
-  pinecone_url <- get_url(controller,"vectors/update")
+  # get URL using data plane
+  pinecone_url <- get_data_plane_url(host, "vectors/update")
 
-  print(pinecone_url)
-
-  # get toke
+  # get token
   pinecone_token <- get_api_key()
 
   # body
   body <- list(
-    id        = vector_id,
-    setMetadata = meta_data,
+    id = vector_id,
     namespace = name_space
   )
 
-  # remove values if undefined
-  if(is.null(embeddings)){
-    body <- body[names(body) != "values"]
+  # Add values if provided
+  if (!is.null(values)) {
+    body$values <- values
+  }
+
+  # Add metadata if provided
+  if (!is.null(meta_data)) {
+    body$setMetadata <- meta_data
   }
 
   body <- jsonlite::toJSON(body, auto_unbox = TRUE)
-
-  print(body)
 
   # get response
   response <- httr::POST( pinecone_url,
                           body = body,
                           encode = "raw",
+                          httr::accept_json(),
+                          httr::content_type_json(),
                           httr::add_headers( `Api-Key`= pinecone_token )
   )
 
@@ -259,57 +322,152 @@ vector_update  <- function( index, embeddings = NULL, vector_id,  meta_data = ""
 
 
 
-#' Upsert
+#' Upsert Vectors
 #'
-#' @param index
-#' @param embeddings
-#' @param vector_id
-#' @param meta_data
-#' @param name_space
+#' Inserts or updates vectors in an index. If a vector with the same ID exists,
+#' it will be overwritten.
 #'
-#' @return
+#' @param index Name of the index
+#' @param vectors List of vectors to upsert. Each vector should be a list with:
+#'   - id: Vector ID (character)
+#'   - values: Vector values (numeric vector)
+#'   - metadata: Optional metadata (list)
+#' @param name_space Namespace to upsert into (default: "")
+#'
+#' @return List with http response, content (upserted count), and status_code
 #' @export
 #'
-vector_upsert  <- function( index, embeddings, vector_id,  meta_data = "" , name_space = ""){
+#' @examples
+#' \dontrun{
+#' # Upsert a single vector
+#' vector_upsert("my-index", vectors = list(
+#'   list(id = "vec1", values = rep(0.1, 1536), metadata = list(category = "A"))
+#' ))
+#'
+#' # Upsert multiple vectors
+#' vector_upsert("my-index", vectors = list(
+#'   list(id = "vec1", values = rep(0.1, 1536)),
+#'   list(id = "vec2", values = rep(0.2, 1536))
+#' ))
+#' }
+vector_upsert <- function(index, vectors, name_space = ""){
 
-    # get controller
-    temp_index <- describe_index( index_name = index )
-    controller <- extract_vector_controller( temp_index )
+  # get index host
+  temp_index <- describe_index(index_name = index)
+  host <- get_index_host(temp_index)
 
-    # get URL
-    pinecone_url <- get_url(controller,"vectors/upsert")
+  # get URL using data plane
+  pinecone_url <- get_data_plane_url(host, "vectors/upsert")
 
-    print(pinecone_url)
+  # get token
+  pinecone_token <- get_api_key()
 
-    # get toke
-    pinecone_token <- get_api_key()
+  # body
+  body <- list(
+    vectors = vectors,
+    namespace = name_space
+  )
 
-    # body
-    body <- list(
-                  vectors   = list(list(
-                                   id        = vector_id,
-                                   values    = embeddings,
-                                   metadata = meta_data
-                                   )
-                                   ),
-                  namespace = name_space
-                  )
+  body <- jsonlite::toJSON(body, auto_unbox = TRUE)
 
-    body <- jsonlite::toJSON(body, auto_unbox = TRUE)
+  # get response
+  response <- httr::POST( pinecone_url,
+                          body = body,
+                          encode = "raw",
+                          httr::accept_json(),
+                          httr::content_type_json(),
+                          httr::add_headers( `Api-Key`= pinecone_token )
+  )
 
-    print(body)
+  result <- handle_respons(response)
 
-    # get response
-    response <- httr::POST( pinecone_url,
-                            body = body,
-                            encode = "raw",
-                            httr::add_headers( `Api-Key`= pinecone_token )
-    )
-
-    result <- handle_respons(response)
-
-    return(result)
+  return(result)
 
 }
 
 
+#' List Vector IDs
+#'
+#' Lists vector IDs in a namespace of a serverless index. Returns paginated results
+#' with optional prefix filtering.
+#'
+#' @param index Name of the index
+#' @param namespace Namespace to list vectors from (default: "")
+#' @param prefix Optional prefix to filter vector IDs
+#' @param limit Maximum number of IDs to return per page (default: 100, max: 100)
+#' @param pagination_token Token for fetching the next page of results
+#'
+#' @return List with http response, content (vector IDs and pagination info), and status_code.
+#'   Content includes:
+#'   - vectors: list of vector objects with id field
+#'   - pagination: list with next token if more results exist
+#'   - namespace: the namespace queried
+#'
+#' @details
+#' This endpoint is only available for serverless indexes. For pod-based indexes,
+#' use vector_fetch() with known IDs or vector_query() with metadata filters.
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # List first 100 vector IDs
+#' result <- vector_list("my-index")
+#'
+#' # List with prefix filter
+#' result <- vector_list("my-index", prefix = "doc_")
+#'
+#' # Paginate through results
+#' result <- vector_list("my-index", limit = 50)
+#' if (!is.null(result$content$pagination$next)) {
+#'   next_page <- vector_list("my-index",
+#'     pagination_token = result$content$pagination$next)
+#' }
+#' }
+vector_list <- function(index, namespace = "", prefix = NULL, limit = 100, pagination_token = NULL) {
+
+  # assertions
+  assertthat::assert_that(!is.na(index), msg = "Please provide an index name.")
+  assertthat::assert_that(
+    is.numeric(limit) && limit > 0 && limit <= 100,
+    msg = "limit must be a number between 1 and 100."
+  )
+
+  # get index host
+  temp_index <- describe_index(index_name = index)
+  host <- get_index_host(temp_index)
+
+  # get URL using data plane
+  pinecone_url <- get_data_plane_url(host, "vectors/list")
+
+  # get token
+  pinecone_token <- get_api_key()
+
+  # build query params
+  query_params <- list(limit = limit)
+
+  if (namespace != "") {
+    query_params$namespace <- namespace
+  }
+
+  if (!is.null(prefix)) {
+    query_params$prefix <- prefix
+  }
+
+  if (!is.null(pagination_token)) {
+    query_params$paginationToken <- pagination_token
+  }
+
+  # get response
+  response <- httr::GET(
+    pinecone_url,
+    query = query_params,
+    httr::accept_json(),
+    httr::add_headers(`Api-Key` = pinecone_token)
+  )
+
+  result <- handle_respons(response)
+
+  return(result)
+
+}
