@@ -2,11 +2,7 @@ name: pkgdown
 
 on:
   push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
-  release:
-    types: [published]
+    branches: [documentation]
   workflow_dispatch:
 
 permissions:
@@ -47,7 +43,6 @@ jobs:
           path: docs
 
   deploy:
-    if: github.event_name != 'pull_request'
     needs: pkgdown
     runs-on: ubuntu-latest
     environment:
