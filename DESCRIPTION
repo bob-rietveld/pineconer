@@ -1,7 +1,7 @@
 Package: pineconer
 Type: Package
 Title: R Interface to the Pinecone Vector Database
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: person("Bob", "Rietveld",
                   email = "bob.rietveld@gmail.com",
                   role = c("aut", "cre"))

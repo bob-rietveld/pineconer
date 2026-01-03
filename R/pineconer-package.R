@@ -20,14 +20,17 @@
 #' Then restart R or run \code{readRenviron("~/.Renviron")}.
 #'
 #' @section API Architecture:
-#' The Pinecone API has two planes:
+#' The Pinecone API has three planes:
 #'
 #' \strong{Control Plane} (api.pinecone.io):
-#' Used for management operations including index and collection CRUD operations.
+#' Used for management operations including index, collection, and assistant CRUD.
 #'
 #' \strong{Data Plane} (index-specific host):
 #' Used for vector operations. The host URL is returned when creating or
 #' describing an index.
+#'
+#' \strong{Assistant Data Plane} (assistant-specific host):
+#' Used for assistant file and chat operations.
 #'
 #' @section Index Operations:
 #' \itemize{
@@ -53,7 +56,54 @@
 #'   \item \code{\link{vector_fetch}}: Fetch vectors by ID
 #'   \item \code{\link{vector_update}}: Update vector values or metadata
 #'   \item \code{\link{vector_delete}}: Delete vectors
+#'   \item \code{\link{vector_list}}: List vector IDs with pagination
 #'   \item \code{\link{describe_index_stats}}: Get index statistics
+#' }
+#'
+#' @section Inference API:
+#' \itemize{
+#'   \item \code{\link{inference_embed}}: Generate embeddings from text
+#'   \item \code{\link{inference_rerank}}: Rerank documents by relevance
+#' }
+#'
+#' @section Records API:
+#' For indexes with integrated inference (auto-embedding):
+#' \itemize{
+#'   \item \code{\link{records_upsert}}: Upsert records with automatic embedding
+#'   \item \code{\link{records_search}}: Search records by text query
+#' }
+#'
+#' @section Bulk Operations:
+#' \itemize{
+#'   \item \code{\link{start_import}}: Start bulk import from cloud storage
+#'   \item \code{\link{describe_import}}: Get import job status
+#'   \item \code{\link{list_imports}}: List all import jobs
+#'   \item \code{\link{cancel_import}}: Cancel a running import
+#' }
+#'
+#' @section Assistant Operations:
+#' \itemize{
+#'   \item \code{\link{list_assistants}}: List all assistants
+#'   \item \code{\link{create_assistant}}: Create a new assistant
+#'   \item \code{\link{describe_assistant}}: Get assistant details
+#'   \item \code{\link{update_assistant}}: Update assistant settings
+#'   \item \code{\link{delete_assistant}}: Delete an assistant
+#' }
+#'
+#' @section Assistant File Operations:
+#' \itemize{
+#'   \item \code{\link{assistant_list_files}}: List files in an assistant
+#'   \item \code{\link{assistant_upload_file}}: Upload a file to an assistant
+#'   \item \code{\link{assistant_describe_file}}: Get file details
+#'   \item \code{\link{assistant_delete_file}}: Delete a file from an assistant
+#' }
+#'
+#' @section Assistant Chat Operations:
+#' \itemize{
+#'   \item \code{\link{assistant_chat}}: Chat with an assistant (recommended)
+#'   \item \code{\link{assistant_chat_completions}}: OpenAI-compatible chat interface
+#'   \item \code{\link{assistant_context}}: Retrieve context snippets for custom RAG
+#'   \item \code{\link{assistant_evaluate}}: Evaluate answer correctness
 #' }
 #'
 #' @section Response Structure:
@@ -87,10 +137,24 @@
 #'   vector = rep(0.1, 1536),
 #'   top_k = 10
 #' )
+#'
+#' # Use inference API to embed text
+#' embeddings <- inference_embed(
+#'   model = "multilingual-e5-large",
+#'   inputs = c("Hello world", "Goodbye world")
+#' )
+#'
+#' # Create an assistant and chat
+#' create_assistant(name = "my-assistant")
+#' assistant_upload_file("my-assistant", "document.pdf")
+#' response <- assistant_chat(
+#'   assistant_name = "my-assistant",
+#'   messages = list(list(role = "user", content = "Summarize the document"))
+#' )
 #' }
 #'
 #' @importFrom httr GET POST DELETE PATCH modify_url status_code content
-#'   accept_json content_type_json add_headers
+#'   accept_json content_type_json add_headers upload_file
 #' @importFrom assertthat assert_that
 #' @importFrom tibble tibble
 #' @importFrom tidyr unnest_wider

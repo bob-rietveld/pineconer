@@ -1,0 +1,425 @@
+---
+title: "Inference API and Records"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Inference API and Records}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Introduction
+
+Pinecone provides two powerful APIs for working with embeddings and semantic search:
+
+1. **Inference API**: Generate embeddings and rerank documents using Pinecone-hosted models
+2. **Records API**: Work with indexes that have integrated inference (automatic embedding)
+
+This vignette demonstrates how to use these features with the `pineconer` package.
+
+## Setup
+
+```{r setup}
+library(pineconer)
+```
+
+## Inference API
+
+The Inference API allows you to generate embeddings and rerank documents without managing your own models.
+
+### Generating Embeddings
+
+```{r embed}
+# Embed text using a model
+result <- inference_embed(
+  model = "multilingual-e5-large",
+  inputs = c(
+    "The quick brown fox jumps over the lazy dog",
+    "Machine learning is transforming industries"
+  )
+)
+
+# Access the embeddings
+embeddings <- result$content$data
+print(length(embeddings[[1]]$values))  # Dimension of embeddings
+
+# Use embeddings for vector operations
+vector_upsert(
+  index = "my-index",
+  vectors = list(
+    list(id = "doc1", values = embeddings[[1]]$values),
+    list(id = "doc2", values = embeddings[[2]]$values)
+  )
+)
+```
+
+### Available Embedding Models
+
+| Model | Description | Dimension |
+|-------|-------------|-----------|
+| `multilingual-e5-large` | Multilingual model, good for general text | 1024 |
+| `llama-text-embed-v2` | High-performance English model | 4096 |
+| `pinecone-sparse-english-v0` | Sparse embeddings for keyword search | Variable |
+
+### Embedding with Input Type
+
+```{r embed-input-type}
+# Specify input type for better results
+# Use "query" for search queries, "passage" for documents
+result <- inference_embed(
+  model = "multilingual-e5-large",
+  inputs = "What is machine learning?",
+  input_type = "query"
+)
+
+# For documents/passages
+result <- inference_embed(
+  model = "multilingual-e5-large",
+  inputs = c(
+    "Machine learning is a subset of AI...",
+    "Deep learning uses neural networks..."
+  ),
+  input_type = "passage"
+)
+```
+
+### Truncation Handling
+
+```{r embed-truncate}
+# Handle long inputs
+result <- inference_embed(
+  model = "multilingual-e5-large",
+  inputs = very_long_text,
+  truncate = "END"  # Truncate from the end if too long
+)
+```
+
+## Reranking Documents
+
+Rerank documents by relevance to a query:
+
+```{r rerank}
+# Rerank documents based on a query
+documents <- list(
+  list(id = "doc1", text = "The capital of France is Paris"),
+  list(id = "doc2", text = "London is the capital of England"),
+  list(id = "doc3", text = "Paris is known for the Eiffel Tower")
+)
+
+result <- inference_rerank(
+  model = "bge-reranker-v2-m3",
+  query = "What is the capital of France?",
+  documents = documents,
+  top_n = 2,
+  rank_fields = "text"
+)
+
+# Get reranked results
+for (doc in result$content$data) {
+  cat("Score:", doc$score, "- ID:", doc$document$id, "\n")
+}
+```
+
+### Available Reranking Models
+
+| Model | Description |
+|-------|-------------|
+| `bge-reranker-v2-m3` | Multilingual, high accuracy |
+| `cohere-rerank-3.5` | Cohere's reranking model |
+| `pinecone-rerank-v0` | Pinecone's native reranker |
+
+### Reranking with Return Documents
+
+```{r rerank-return}
+# Include original documents in response
+result <- inference_rerank(
+  model = "bge-reranker-v2-m3",
+  query = "capital of France",
+  documents = documents,
+  return_documents = TRUE
+)
+
+# Access both score and content
+for (doc in result$content$data) {
+  cat("Score:", doc$score, "\n")
+  cat("Text:", doc$document$text, "\n\n")
+}
+```
+
+## Records API
+
+The Records API works with indexes that have integrated inference - meaning Pinecone automatically generates embeddings when you upsert records.
+
+### Creating an Integrated Index
+
+First, create an index with integrated inference:
+
+```{r create-integrated-index}
+# Create an index with integrated inference
+create_index(
+  name = "my-records-index",
+  dimension = 1024,  # Matches the embedding model
+
+  metric = "cosine",
+  spec = list(
+    serverless = list(
+      cloud = "aws",
+      region = "us-east-1"
+    )
+  ),
+  embed = list(
+    model = "multilingual-e5-large",
+    field_map = list(text = "content")  # Field to embed
+  )
+)
+```
+
+### Upserting Records
+
+With integrated inference, you provide text and Pinecone handles embedding:
+
+```{r records-upsert}
+# Upsert records - Pinecone embeds the text automatically
+result <- records_upsert(
+  index = "my-records-index",
+  records = list(
+    list(
+      id = "article-1",
+      content = "Machine learning is revolutionizing data analysis",
+      category = "technology",
+      published = "2024-01-15"
+    ),
+    list(
+      id = "article-2",
+      content = "The stock market showed strong gains today",
+      category = "finance",
+      published = "2024-01-16"
+    )
+  )
+)
+
+print(result$status_code)  # 200 on success
+```
+
+### Searching Records
+
+Search using natural language - Pinecone embeds your query automatically:
+
+```{r records-search}
+# Search with a text query
+results <- records_search(
+  index = "my-records-index",
+  query = "artificial intelligence applications",
+  top_k = 5
+)
+
+# View results
+for (match in results$content$matches) {
+  cat("ID:", match$id, "\n")
+  cat("Score:", match$score, "\n")
+  cat("Content:", match$fields$content, "\n\n")
+}
+```
+
+### Search with Filters
+
+```{r records-search-filter}
+# Search with metadata filters
+results <- records_search(
+  index = "my-records-index",
+  query = "latest developments",
+  top_k = 10,
+  filter = list(
+    category = list(`$eq` = "technology")
+  )
+)
+
+# Filter by date
+results <- records_search(
+  index = "my-records-index",
+  query = "market analysis",
+  filter = list(
+    `$and` = list(
+      list(category = list(`$eq` = "finance")),
+      list(published = list(`$gte` = "2024-01-01"))
+    )
+  )
+)
+```
+
+### Search with Reranking
+
+Combine vector search with reranking for better results:
+
+```{r records-search-rerank}
+# Search and rerank
+results <- records_search(
+  index = "my-records-index",
+  query = "How is AI being used in finance?",
+  top_k = 20,  # Get more candidates
+  rerank = list(
+    model = "bge-reranker-v2-m3",
+    top_n = 5,  # Return top 5 after reranking
+    rank_fields = list("content")
+  )
+)
+```
+
+## Bulk Import Operations
+
+For large datasets, use bulk import from cloud storage:
+
+```{r bulk-import}
+# Start a bulk import from S3
+import_result <- start_import(
+  index_name = "my-index",
+  uri = "s3://my-bucket/data/",
+  integration_id = "my-s3-integration"
+)
+
+import_id <- import_result$content$id
+cat("Import started:", import_id, "\n")
+
+# Check import status
+status <- describe_import(
+  index_name = "my-index",
+  import_id = import_id
+)
+cat("Status:", status$content$status, "\n")
+cat("Records imported:", status$content$recordsImported, "\n")
+
+# List all imports
+all_imports <- list_imports(index_name = "my-index")
+for (imp in all_imports$content$data) {
+  cat(imp$id, "-", imp$status, "\n")
+}
+```
+
+## Complete Workflow Example
+
+```{r complete-workflow}
+library(pineconer)
+
+# 1. Generate embeddings for your data
+texts <- c(
+  "Introduction to machine learning algorithms",
+  "Deep learning and neural networks explained",
+  "Natural language processing techniques",
+  "Computer vision applications in healthcare",
+  "Reinforcement learning for robotics"
+)
+
+embeddings <- inference_embed(
+  model = "multilingual-e5-large",
+  inputs = texts,
+  input_type = "passage"
+)
+
+# 2. Create an index
+create_index(
+  name = "ml-articles",
+  dimension = 1024,
+  metric = "cosine",
+  spec = list(serverless = list(cloud = "aws", region = "us-east-1"))
+)
+
+# Wait for index to be ready
+Sys.sleep(30)
+
+# 3. Upsert vectors with metadata
+vectors <- lapply(seq_along(texts), function(i) {
+  list(
+    id = paste0("article-", i),
+    values = embeddings$content$data[[i]]$values,
+    metadata = list(
+      text = texts[i],
+      category = "machine-learning"
+    )
+  )
+})
+
+vector_upsert(index = "ml-articles", vectors = vectors)
+
+# 4. Search with a query
+query_embedding <- inference_embed(
+  model = "multilingual-e5-large",
+  inputs = "How do neural networks work?",
+  input_type = "query"
+)
+
+results <- vector_query(
+  index = "ml-articles",
+  vector = query_embedding$content$data[[1]]$values,
+  top_k = 3,
+  include_metadata = TRUE
+)
+
+# 5. Display results
+cat("Search Results:\n")
+for (match in results$content$matches) {
+  cat("Score:", match$score, "\n")
+  cat("Text:", match$metadata$text, "\n\n")
+}
+
+# 6. Rerank results for better precision
+docs_for_rerank <- lapply(results$content$matches, function(m) {
+  list(id = m$id, text = m$metadata$text)
+})
+
+reranked <- inference_rerank(
+  model = "bge-reranker-v2-m3",
+  query = "How do neural networks work?",
+  documents = docs_for_rerank,
+  top_n = 2
+)
+
+cat("Reranked Results:\n")
+for (doc in reranked$content$data) {
+  cat("Score:", doc$score, "- ID:", doc$document$id, "\n")
+}
+
+# 7. Clean up
+delete_index("ml-articles")
+```
+
+## Error Handling
+
+```{r error-handling}
+# Check for errors in API responses
+result <- inference_embed(
+  model = "multilingual-e5-large",
+  inputs = "Test text"
+)
+
+if (result$status_code != 200) {
+  cat("Error:", result$status_code, "\n")
+  # Access error details
+  error_content <- httr::content(result$http, "text")
+  cat("Details:", error_content, "\n")
+} else {
+  cat("Success! Embedding dimension:", length(result$content$data[[1]]$values), "\n")
+}
+```
+
+## Best Practices
+
+1. **Batch embeddings**: Process multiple texts at once for efficiency
+2. **Use input types**: Specify `query` vs `passage` for better search results
+3. **Match dimensions**: Ensure index dimension matches your embedding model
+4. **Rerank for precision**: Use reranking to improve top results quality
+5. **Use integrated indexes**: For simpler workflows, use Records API with auto-embedding
+6. **Filter strategically**: Combine vector search with metadata filters
+
+## Additional Resources
+
+- [Inference API Documentation](https://docs.pinecone.io/guides/inference/understanding-inference)
+- [Embedding Models](https://docs.pinecone.io/guides/inference/embedding-models)
+- [Reranking Guide](https://docs.pinecone.io/guides/inference/rerank)
+- [Integrated Inference](https://docs.pinecone.io/guides/indexes/create-an-index-with-integrated-embedding)

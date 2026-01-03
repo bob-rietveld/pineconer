@@ -1,0 +1,369 @@
+---
+title: "Using Pinecone Assistants"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using Pinecone Assistants}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Introduction
+
+Pinecone Assistants provide a managed RAG (Retrieval-Augmented Generation) solution that allows you to upload documents, ask questions, and receive AI-generated responses with citations. This vignette demonstrates how to use the `pineconer` package to work with Pinecone Assistants.
+
+## Setup
+
+```{r setup}
+library(pineconer)
+```
+
+Ensure your Pinecone API key is configured in `~/.Renviron`:
+
+```
+PINECONE_API_KEY=your_api_key
+```
+
+## Creating an Assistant
+
+Create a new assistant with optional instructions:
+
+```{r create-assistant}
+# Create a basic assistant
+result <- create_assistant(name = "my-research-assistant")
+print(result$status_code)  # 200 on success
+
+# Create with custom instructions
+result <- create_assistant(
+  name = "legal-assistant",
+  instructions = "Use formal language. Always cite the specific document and page number when referencing information.",
+  region = "us"
+)
+```
+
+### Available Regions
+
+- `us` (default): US region
+- `eu`: EU region
+
+## Listing Assistants
+
+```{r list-assistants}
+# List all assistants in your project
+assistants <- list_assistants()
+print(assistants$content)
+```
+
+## Describing an Assistant
+
+```{r describe-assistant}
+# Get details about a specific assistant
+info <- describe_assistant("my-research-assistant")
+print(info$content$name)
+print(info$content$status)  # "Ready" when ready to use
+print(info$content$host)    # Host for data plane operations
+```
+
+## Uploading Files
+
+Upload documents to your assistant for RAG:
+
+```{r upload-file}
+# Upload a PDF document
+result <- assistant_upload_file(
+  assistant_name = "my-research-assistant",
+  file_path = "/path/to/document.pdf"
+)
+print(result$content$id)      # File ID
+print(result$content$status)  # "Processing" initially
+
+# Upload with metadata for filtering
+result <- assistant_upload_file(
+  assistant_name = "my-research-assistant",
+  file_path = "/path/to/report.pdf",
+  metadata = list(
+    category = "financial",
+    year = 2024,
+    department = "sales"
+  )
+)
+```
+
+### Supported File Types
+
+- PDF (`.pdf`)
+- Text (`.txt`)
+- Markdown (`.md`)
+- Word (`.docx`)
+- And more...
+
+## Managing Files
+
+### List Files
+
+```{r list-files}
+# List all files in an assistant
+files <- assistant_list_files("my-research-assistant")
+print(files$content)
+
+# Filter by metadata
+files <- assistant_list_files(
+  assistant_name = "my-research-assistant",
+  filter = list(category = list(`$eq` = "financial"))
+)
+```
+
+### Describe a File
+
+```{r describe-file}
+# Get file status and details
+file_info <- assistant_describe_file(
+  assistant_name = "my-research-assistant",
+  file_id = "file-abc123"
+)
+print(file_info$content$status)  # "Available" when indexed
+print(file_info$content$name)
+```
+
+### Delete a File
+
+```{r delete-file}
+# Remove a file from the assistant
+result <- assistant_delete_file(
+  assistant_name = "my-research-assistant",
+  file_id = "file-abc123"
+)
+```
+
+## Chatting with an Assistant
+
+The main way to interact with an assistant is through chat:
+
+```{r chat}
+# Simple chat
+response <- assistant_chat(
+  assistant_name = "my-research-assistant",
+  messages = list(
+    list(role = "user", content = "What are the key findings in the Q4 report?")
+  )
+)
+
+# Access the response
+print(response$content$message$content)
+
+# View citations
+for (citation in response$content$citations) {
+  cat("Source:", citation$references[[1]]$file$name, "\n")
+  cat("Text:", citation$references[[1]]$pages[[1]]$text, "\n\n")
+}
+```
+
+### Multi-turn Conversations
+
+```{r multi-turn}
+# Build a conversation with context
+messages <- list(
+  list(role = "user", content = "What is the company's revenue?"),
+  list(role = "assistant", content = "Based on the Q4 report, the company's revenue was $10M."),
+  list(role = "user", content = "How does that compare to last year?")
+)
+
+response <- assistant_chat(
+  assistant_name = "my-research-assistant",
+  messages = messages
+)
+```
+
+### Chat with Filters
+
+Filter which documents the assistant can reference:
+
+```{r chat-filter}
+# Only reference financial documents from 2024
+response <- assistant_chat(
+  assistant_name = "my-research-assistant",
+  messages = list(
+    list(role = "user", content = "Summarize the financial performance")
+  ),
+  filter = list(
+    `$and` = list(
+      list(category = list(`$eq` = "financial")),
+      list(year = list(`$eq` = 2024))
+    )
+  )
+)
+```
+
+### Specifying a Model
+
+```{r chat-model}
+# Use a specific model
+response <- assistant_chat(
+  assistant_name = "my-research-assistant",
+  messages = list(
+    list(role = "user", content = "Explain the technical architecture")
+  ),
+  model = "gpt-4o"
+)
+```
+
+## Retrieving Context
+
+For custom RAG pipelines, retrieve context snippets without generating a response:
+
+```{r context}
+# Get relevant snippets
+context <- assistant_context(
+  assistant_name = "my-research-assistant",
+  query = "What were the main challenges in Q4?"
+)
+
+# Use snippets in your own pipeline
+for (snippet in context$content$snippets) {
+  cat("Score:", snippet$score, "\n")
+  cat("Content:", snippet$content, "\n")
+  cat("Source:", snippet$reference$file$name, "\n\n")
+}
+```
+
+### Context with Options
+
+```{r context-options}
+# Customize context retrieval
+context <- assistant_context(
+  assistant_name = "my-research-assistant",
+  query = "revenue growth",
+  top_k = 10,              # Number of snippets
+  snippet_size = 500,       # Characters per snippet
+  filter = list(category = list(`$eq` = "financial"))
+)
+```
+
+## OpenAI-Compatible Chat
+
+For compatibility with OpenAI-style interfaces:
+
+```{r chat-completions}
+response <- assistant_chat_completions(
+  assistant_name = "my-research-assistant",
+  messages = list(
+    list(role = "user", content = "What is the main topic of the documents?")
+  )
+)
+
+# Response follows OpenAI format
+print(response$content$choices[[1]]$message$content)
+```
+
+## Evaluating Responses
+
+Evaluate the quality of assistant responses:
+```{r evaluate}
+result <- assistant_evaluate(
+  question = "What was Q4 revenue?",
+  answer = "Q4 revenue was $10 million, up 15% from last year.",
+  ground_truth_answer = "Q4 revenue was $10M, representing a 15% YoY increase."
+)
+
+print(result$content$metrics$correctness)
+print(result$content$metrics$completeness)
+print(result$content$reasoning)
+```
+
+## Updating an Assistant
+
+Modify assistant settings:
+
+```{r update-assistant}
+result <- update_assistant(
+  assistant_name = "my-research-assistant",
+  instructions = "Always respond in bullet points. Cite sources.",
+  metadata = list(
+    version = "2.0",
+    updated = "2024-01-15"
+  )
+)
+```
+
+## Deleting an Assistant
+
+```{r delete-assistant}
+# This also deletes all files in the assistant
+result <- delete_assistant("my-research-assistant")
+print(result$status_code)  # 200 on success
+```
+
+## Complete Workflow Example
+
+```{r workflow}
+# 1. Create an assistant
+create_assistant(
+  name = "doc-analyzer",
+  instructions = "Analyze documents and provide concise summaries with citations."
+)
+
+# 2. Upload documents
+assistant_upload_file("doc-analyzer", "report1.pdf")
+assistant_upload_file("doc-analyzer", "report2.pdf")
+
+# 3. Wait for files to be processed (check status)
+Sys.sleep(30)  # Wait for indexing
+files <- assistant_list_files("doc-analyzer")
+
+# 4. Check all files are ready
+all_ready <- all(sapply(files$content$files, function(f) f$status == "Available"))
+
+if (all_ready) {
+  # 5. Chat with the assistant
+  response <- assistant_chat(
+    assistant_name = "doc-analyzer",
+    messages = list(
+      list(role = "user", content = "Compare the main themes across both reports")
+    )
+  )
+
+  cat("Response:\n", response$content$message$content, "\n")
+}
+
+# 6. Clean up when done
+delete_assistant("doc-analyzer")
+```
+
+## Error Handling
+
+```{r error-handling}
+# Check response status
+response <- assistant_chat(
+  assistant_name = "my-assistant",
+  messages = list(list(role = "user", content = "Hello"))
+)
+
+if (response$status_code != 200) {
+  cat("Error:", response$status_code, "\n")
+  cat("Details:", httr::content(response$http, "text"), "\n")
+} else {
+  cat("Success:", response$content$message$content, "\n")
+}
+```
+
+## Best Practices
+
+1. **Wait for file processing**: After uploading, check file status before chatting
+2. **Use metadata**: Add metadata to files for filtering in queries
+3. **Provide context**: Use multi-turn conversations for follow-up questions
+4. **Set instructions**: Define assistant behavior with clear instructions
+5. **Handle rate limits**: Implement retry logic for production use
+6. **Clean up**: Delete assistants when no longer needed
+
+## Additional Resources
+
+- [Pinecone Assistant Documentation](https://docs.pinecone.io/guides/assistants/understanding-assistants)
+- [File Upload Guide](https://docs.pinecone.io/guides/assistants/upload-files)
+- [Chat API Reference](https://docs.pinecone.io/reference/api/assistant/chat)
