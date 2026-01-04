@@ -1,23 +1,115 @@
 ---
-title: "Index.Rmd"
-author: "Bob Rietveld"
-date: "2023-05-05"
-output:
-  md_document:
-    variant: markdown_github
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
 
-## Pincone
+# pineconer <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/bob-rietveld/pineconer/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bob-rietveld/pineconer/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+An R interface to the [Pinecone](https://www.pinecone.io/) vector database API for building similarity search and RAG (Retrieval-Augmented Generation) applications.
 
-```{r cars}
-summary(cars)
+## Overview
+
+pineconer provides a comprehensive set of functions for working with the Pinecone vector database directly from R:
+
+- **Index Management** - Create, configure, and manage serverless or pod-based indexes
+- **Vector Operations** - Query, upsert, fetch, update, and delete vectors with filtering support
+- **Inference API** - Generate embeddings and rerank results using Pinecone's hosted models
+- **Assistants API** - Build RAG applications by uploading documents and chatting with AI assistants
+- **Bulk Operations** - Import large datasets efficiently from cloud storage
+
+## Installation
+
+Install the development version from GitHub:
+
+```{r}
+# install.packages("pak")
+pak::pak("bob-rietveld/pineconer")
 ```
 
+## Configuration
+
+Set your Pinecone API key in `~/.Renviron`:
+
+```
+PINECONE_API_KEY=your_api_key
+```
+
+## Quick Start
+
+### Create an Index
+
+```{r}
+library(pineconer)
+
+# Create a serverless index
+create_index(
+  name = "my-index",
+  dimension = 1536,
+
+  metric = "cosine",
+  spec = list(serverless = list(cloud = "aws", region = "us-east-1"))
+)
+```
+
+### Query Vectors
+
+```{r}
+# Get index info
+index <- describe_index("my-index")
+
+# Query for similar vectors
+results <- vector_query(
+  index = index,
+  vector = my_embedding,
+  top_k = 10
+)
+```
+
+### Use the Assistants API
+
+```{r}
+# Create an assistant for RAG
+create_assistant(name = "my-assistant")
+
+# Upload documents
+assistant_upload_file("my-assistant", "documents/report.pdf")
+
+# Chat with your documents
+response <- assistant_chat(
+ assistant_name = "my-assistant",
+  messages = list(
+    list(role = "user", content = "Summarize the key findings")
+  )
+)
+
+response$content$message$content
+```
+
+## Features
+
+| Feature | Functions |
+|---------|-----------|
+| **Indexes** | `create_index()`, `list_indexes()`, `describe_index()`, `configure_index()`, `delete_index()` |
+| **Vectors** | `vector_query()`, `vector_upsert()`, `vector_fetch()`, `vector_update()`, `vector_delete()` |
+| **Collections** | `create_collection()`, `list_collections()`, `describe_collection()`, `delete_collection()` |
+| **Inference** | `embed()`, `rerank()` |
+| **Records** | `records_upsert()`, `records_search()` |
+| **Assistants** | `create_assistant()`, `assistant_upload_file()`, `assistant_chat()`, `assistant_context()` |
+| **Bulk Import** | `start_import()`, `describe_import()`, `list_imports()` |
+
+## Learn More
+
+- [Getting Started](articles/getting-started.html) - Step-by-step guide to using pineconer
+- [Assistants API](articles/assistants.html) - Build RAG applications with Pinecone Assistants
+- [Inference API](articles/inference.html) - Generate embeddings and rerank results
+- [Function Reference](reference/index.html) - Complete API documentation
+
+## License
+MIT

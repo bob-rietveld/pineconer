@@ -1,0 +1,55 @@
+/* Smaller base font size */
+html {
+  font-size: 14px;
+}
+
+body {
+  font-size: 0.95rem;
+}
+
+/* Smaller headings */
+h1 {
+  font-size: 1.8rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+h4 {
+  font-size: 1.1rem;
+}
+
+/* Navbar font size */
+.navbar {
+  font-size: 0.9rem;
+}
+
+/* Sidebar font size */
+.sidebar {
+  font-size: 0.85rem;
+}
+
+/* Code blocks */
+pre, code {
+  font-size: 0.85rem;
+}
+
+/* Reference page */
+.ref-index td {
+  font-size: 0.9rem;
+}
+
+/* Tables */
+table {
+  font-size: 0.9rem;
+}
+
+/* Footer */
+footer {
+  font-size: 0.8rem;
+}

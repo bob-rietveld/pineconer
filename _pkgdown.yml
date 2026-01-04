@@ -5,6 +5,11 @@ template:
   bootswatch: flatly
   bslib:
     primary: "#1a73e8"
+    base_font: {google: "Inter"}
+    code_font: {google: "Fira Code"}
+  includes:
+    in_header: |
+      <link rel="stylesheet" href="extra.css">
 
 home:
   title: pineconer - R Interface to Pinecone Vector Database
