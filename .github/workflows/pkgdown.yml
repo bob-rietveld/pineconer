@@ -2,7 +2,7 @@ name: pkgdown
 
 on:
   push:
-    branches: [documentation]
+    branches: [documentation, main, rl/3479-clean-up-docs]
   workflow_dispatch:
 
 permissions:
